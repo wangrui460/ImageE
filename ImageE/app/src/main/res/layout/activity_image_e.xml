@@ -8,15 +8,21 @@
     tools:context=".ImageEActivity">
 
     <RelativeLayout
-        android:background="#000"
+        android:background="@color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/rv_tools"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
         android:layout_width="0dp"
         android:layout_height="0dp">
+        <!-- 主图 -->
+        <com.wangrui.imagee.imagezoom.ImageViewTouch
+            android:id="@+id/ivt_main"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
 
     </RelativeLayout>
 
@@ -30,7 +36,8 @@
         app:layout_constraintBottom_toTopOf="@+id/guideline_done"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:listitem="@layout/row_editing_tools" />
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/adapter_tool" />
 
 
     <androidx.constraintlayout.widget.Guideline
