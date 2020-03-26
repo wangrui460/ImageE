@@ -1,8 +1,8 @@
-package com.bamaying.imagee;
+package com.wangrui.imagee;
 
 import android.app.Application;
 
-import com.bamaying.imagee.utils.Utils;
+import com.wangrui.imagee.utils.Utils;
 
 /**
  * created by WR

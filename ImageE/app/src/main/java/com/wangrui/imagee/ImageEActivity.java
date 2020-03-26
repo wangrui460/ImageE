@@ -1,4 +1,4 @@
-package com.bamaying.imagee;
+package com.wangrui.imagee;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,11 +10,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.bamaying.imagee.tools.ToolAdapter;
-import com.bamaying.imagee.tools.ToolType;
-import com.bamaying.imagee.utils.LogUtils;
-import com.bamaying.imagee.utils.ResUtils;
-import com.bamaying.imagee.utils.ToastUtils;
+import com.wangrui.imagee.tools.ToolAdapter;
+import com.wangrui.imagee.tools.ToolType;
+import com.wangrui.imagee.utils.ResUtils;
+import com.wangrui.imagee.utils.ToastUtils;
 
 public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnToolSelectedListener {
 

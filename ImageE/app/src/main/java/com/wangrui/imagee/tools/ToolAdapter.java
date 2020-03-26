@@ -1,4 +1,4 @@
-package com.bamaying.imagee.tools;
+package com.wangrui.imagee.tools;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,8 +9,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bamaying.imagee.R;
-import com.bamaying.imagee.utils.ResUtils;
+import com.wangrui.imagee.R;
+import com.wangrui.imagee.utils.ResUtils;
 
 import java.util.ArrayList;
 import java.util.List;

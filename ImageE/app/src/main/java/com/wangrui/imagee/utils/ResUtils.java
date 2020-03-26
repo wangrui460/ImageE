@@ -1,4 +1,4 @@
-package com.bamaying.imagee.utils;
+package com.wangrui.imagee.utils;
 
 import android.content.res.AssetManager;
 import android.content.res.Resources;

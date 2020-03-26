@@ -1,4 +1,4 @@
-package com.bamaying.imagee.tools;
+package com.wangrui.imagee.tools;
 
 /**
  * 工具类型
