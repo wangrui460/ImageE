@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="height_done">60dp</dimen>
+    <dimen name="height_tool">100dp</dimen>
+
+    <dimen name="textBottom">20sp</dimen>
+
+    <dimen name="tool_image_size">35dp</dimen>
+</resources>

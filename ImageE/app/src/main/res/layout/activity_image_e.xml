@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_imagee_bg"
+    tools:context=".ImageEActivity">
+
+    <RelativeLayout
+        android:background="#000"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rv_tools"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="20dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp">
+
+    </RelativeLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_tools"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/height_tool"
+        android:background="@color/color_tool_bg"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_done"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:listitem="@layout/row_editing_tools" />
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_done"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_end="@dimen/height_done" />
+
+    <LinearLayout
+        android:background="@color/color_done_bg"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline_done"
+        android:layout_width="0dp"
+        android:layout_height="0dp" />
+
+    <!-- 取消 -->
+    <TextView
+        android:id="@+id/tv_cancel"
+        android:text="取消"
+        android:textColor="@color/color_text"
+        android:textSize="@dimen/textBottom"
+        android:layout_marginStart="20dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline_done"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <!-- 保存 -->
+    <TextView
+        android:id="@+id/tv_sure"
+        android:text="保存"
+        android:textColor="@color/color_text"
+        android:textSize="@dimen/textBottom"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline_done"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

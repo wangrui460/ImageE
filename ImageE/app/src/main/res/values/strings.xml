@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">大象肩膀上</string>
+
+    <string name="tool_name_cut">剪切旋转</string>
+    <string name="tool_name_filter">滤镜</string>
+    <string name="tool_name_sticker">贴纸</string>
+    <string name="tool_name_doodling">涂鸦</string>
+    <string name="tool_name_text">文字</string>
+    <string name="tool_name_mosaic">马赛克</string>
+</resources>
