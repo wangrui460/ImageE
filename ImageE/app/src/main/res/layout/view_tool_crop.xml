@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/color_tool_bg"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/ll_settings"
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:background="@color/color_tool_bg"
+        android:gravity="center_vertical"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/height_tool">
+
+        <!--&lt;!&ndash; 旋转 &ndash;&gt;-->
+        <!--<LinearLayout-->
+            <!--android:orientation="horizontal"-->
+            <!--android:layout_marginTop="10dp"-->
+            <!--android:paddingStart="@dimen/margin_start_tool"-->
+            <!--android:paddingEnd="@dimen/margin_end_tool"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content">-->
+            <!--<TextView-->
+                <!--android:text="旋转"-->
+                <!--android:textColor="@color/color_text"-->
+                <!--android:textSize="@dimen/text_tool"-->
+                <!--android:layout_marginEnd="20dp"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content" />-->
+            <!--<SeekBar-->
+                <!--android:id="@+id/seekbar"-->
+                <!--android:progress="0"-->
+                <!--android:layout_gravity="center_vertical"-->
+                <!--android:layout_weight="1"-->
+                <!--android:layout_width="0dp"-->
+                <!--android:layout_height="10dp" />-->
+        <!--</LinearLayout>-->
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_crops"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/color_tool_bg"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/adapter_crop" />
+    </LinearLayout>
+
+    <com.wangrui.imagee.tools.CancelSureView
+        android:id="@+id/view_cancel_sure"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_settings"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

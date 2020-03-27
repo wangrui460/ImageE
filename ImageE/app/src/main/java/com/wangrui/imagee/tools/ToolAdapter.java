@@ -35,8 +35,6 @@ public class ToolAdapter extends RecyclerView.Adapter<ToolAdapter.ViewHolder> {
         mToolList.add(new ToolModel(ResUtils.getString(R.string.tool_name_mosaic), R.drawable.ic_tool_cut, ToolType.MOSAIC));
     }
 
-
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -68,7 +66,9 @@ public class ToolAdapter extends RecyclerView.Adapter<ToolAdapter.ViewHolder> {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mListener.onToolSelected(mToolList.get(getLayoutPosition()).mToolType);
+                    if (mListener != null) {
+                        mListener.onToolSelected(mToolList.get(getLayoutPosition()).mToolType);
+                    }
                 }
             });
         }

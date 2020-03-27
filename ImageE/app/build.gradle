@@ -30,4 +30,5 @@ dependencies {
     implementation 'com.android.support:recyclerview-v7:27.1.1'
 
     implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.2.4'
+    implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.+'
 }

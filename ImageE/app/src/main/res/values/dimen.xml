@@ -3,8 +3,16 @@
 
     <dimen name="height_done">60dp</dimen>
     <dimen name="height_tool">100dp</dimen>
+    <dimen name="margin_start_tool">20dp</dimen>
+    <dimen name="margin_end_tool">20dp</dimen>
+    <dimen name="margin_start_cancel_sure">20dp</dimen>
+    <dimen name="margin_end_cancel_sure">20dp</dimen>
 
-    <dimen name="textBottom">20sp</dimen>
+    <dimen name="text_tool">16sp</dimen>
+    <dimen name="text_bottom">20sp</dimen>
 
     <dimen name="tool_image_size">35dp</dimen>
+    <dimen name="crop_image_size">40dp</dimen>
+
+    <dimen name="tool_setting_cancel_sure_image_size">25dp</dimen>
 </resources>
