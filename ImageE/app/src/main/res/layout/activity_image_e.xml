@@ -35,6 +35,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- 滤镜 -->
+        <com.wangrui.imagee.imagezoom.ImageViewTouch
+            android:id="@+id/ivt_filter"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
 
 
     </RelativeLayout>
@@ -102,6 +109,18 @@
     <!-- 剪切旋转 -->
     <com.wangrui.imagee.crop.ToolCropView
         android:id="@+id/tool_crop_view"
+        android:background="@color/color_tool_bg"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
+
+    <!-- 滤镜 -->
+    <com.wangrui.imagee.filter.ToolFilterView
+        android:id="@+id/tool_filter_view"
         android:background="@color/color_tool_bg"
         android:clickable="true"
         android:focusable="true"

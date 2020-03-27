@@ -31,4 +31,5 @@ dependencies {
 
     implementation 'com.github.LuckSiege.PictureSelector:picture_library:v2.2.4'
     implementation 'com.theartofdev.edmodo:android-image-cropper:2.8.+'
+    implementation 'jp.co.cyberagent.android:gpuimage:2.0.4'
 }

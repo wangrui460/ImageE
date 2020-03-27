@@ -13,6 +13,7 @@
 
     <dimen name="tool_image_size">35dp</dimen>
     <dimen name="crop_image_size">40dp</dimen>
+    <dimen name="filter_image_size">60dp</dimen>
 
     <dimen name="tool_setting_cancel_sure_image_size">25dp</dimen>
 </resources>

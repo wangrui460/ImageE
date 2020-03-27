@@ -23,6 +23,8 @@ import android.widget.TextView;
 
 import com.theartofdev.edmodo.cropper.CropImageView;
 import com.wangrui.imagee.crop.ToolCropView;
+import com.wangrui.imagee.filter.FilterUtils;
+import com.wangrui.imagee.filter.ToolFilterView;
 import com.wangrui.imagee.imagezoom.ImageViewTouch;
 import com.wangrui.imagee.imagezoom.ImageViewTouchBase;
 import com.wangrui.imagee.tools.ToolAdapter;
@@ -38,6 +40,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private TextView mTvCancel;
     private TextView mTvSave;
     private ToolCropView mToolCropView;
+    private ToolFilterView mToolFilterView;
 
     // 约束
     private ConstraintLayout mRootViewLayout;
@@ -57,6 +60,11 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
     // 剪裁
     private CropImageView mCropImageView;
+
+    // 滤镜
+    private ImageViewTouch mIvtFilter;
+    // 滤镜 Bitmap
+    public Bitmap mFilterBitmap;
 
     private String mImagePath;
 
@@ -98,6 +106,10 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mCropImageView.setGuidelines(CropImageView.Guidelines.ON);
         setupToolCropView();
 
+        // 滤镜
+        mIvtFilter = findViewById(R.id.ivt_filter);
+        setupToolFilterView();
+
 
         // 工具
         LinearLayoutManager toolLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -127,12 +139,12 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     public void onToolSelected(ToolType toolType) {
         switch (toolType) {
             case CUT:
-                mCropImageView.setVisibility(View.VISIBLE);
                 showCropImageView(true);
                 showToolCropView(true);
                 break;
             case FILTER:
-                ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_filter));
+                showFilterImageView(true);
+                showToolFilterView(true);
                 break;
             case STICKER:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_sticker));
@@ -219,6 +231,66 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     }
     //</editor-fold>
 
+
+    //<editor-fold desc="滤镜">
+    private void showFilterImageView(boolean isVisiable) {
+        mIvtFilter.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+        mIvtMain.setVisibility(isVisiable ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private void showToolFilterView(boolean isVisiable) {
+        mConstraintSet.clone(mRootViewLayout);
+
+        if (isVisiable) {
+            mConstraintSet.clear(mToolFilterView.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolFilterView.getId(), ConstraintSet.TOP,
+                    mRvTools.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolFilterView.getId(), ConstraintSet.BOTTOM,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        } else {
+            mConstraintSet.clear(mToolFilterView.getId(), ConstraintSet.TOP);
+            mConstraintSet.clear(mToolFilterView.getId(), ConstraintSet.BOTTOM);
+            mConstraintSet.connect(mToolFilterView.getId(), ConstraintSet.TOP,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        }
+
+        ChangeBounds changeBounds = new ChangeBounds();
+        changeBounds.setDuration(350);
+        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
+        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
+
+        mConstraintSet.applyTo(mRootViewLayout);
+    }
+
+    private void setupToolFilterView() {
+        mToolFilterView = findViewById(R.id.tool_filter_view);
+
+        mToolFilterView.setOnToolFilterViewListener(new ToolFilterView.OnToolFilterViewListener() {
+            @Override
+            public void onClickCancel() {
+                showFilterImageView(false);
+                showToolFilterView(false);
+            }
+
+            @Override
+            public void onClickSure() {
+                updateBitmap(mFilterBitmap);
+                showFilterImageView(false);
+                showToolFilterView(false);
+            }
+
+            @Override
+            public void onFilterSelected(String key) {
+                Bitmap newBitmap = FilterUtils.filterPhoto(ImageEActivity.this, mMainBitmap, key);
+                updateFilterBitmap(newBitmap);
+            }
+        });
+
+
+    }
+    //</editor-fold>
+
+
     // 设置全屏，没有状态栏
     private void makeFullScreen() {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -250,7 +322,24 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mIvtMain.setImageBitmap(mMainBitmap);
         mIvtMain.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
 
+        mIvtFilter.setImageBitmap(mMainBitmap);
+        mIvtFilter.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
+
         mCropImageView.setImageBitmap(mMainBitmap);
+    }
+
+    private void updateFilterBitmap(Bitmap bitmap) {
+        if (mFilterBitmap != null) {
+            if (!mFilterBitmap.isRecycled()) {// 回收
+                mFilterBitmap.recycle();
+            }
+            mFilterBitmap = bitmap;
+        } else {
+            mFilterBitmap = bitmap;
+        }
+
+        mIvtFilter.setImageBitmap(mFilterBitmap);
+        mIvtFilter.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
     }
 
     private final class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
