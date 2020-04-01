@@ -14,6 +14,8 @@ import com.wangrui.imagee.crop.CropType;
 import com.wangrui.imagee.tools.CancelSureView;
 
 /**
+ * 滤镜
+ *
  * created by WR
  * 时间：2020-03-27 15:14
  */

@@ -2,7 +2,7 @@
 <resources>
 
     <dimen name="height_done">60dp</dimen>
-    <dimen name="height_tool">100dp</dimen>
+    <dimen name="height_tool">140dp</dimen>
     <dimen name="margin_start_tool">20dp</dimen>
     <dimen name="margin_end_tool">20dp</dimen>
     <dimen name="margin_start_cancel_sure">20dp</dimen>

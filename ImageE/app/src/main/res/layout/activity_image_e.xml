@@ -19,12 +19,13 @@
         android:layout_marginBottom="20dp"
         android:layout_width="0dp"
         android:layout_height="0dp">
+
         <!-- 主图 -->
         <com.wangrui.imagee.imagezoom.ImageViewTouch
             android:id="@+id/ivt_main"
+            android:layout_centerInParent="true"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center" />
+            android:layout_height="match_parent" />
 
         <!-- 剪裁 -->
         <com.theartofdev.edmodo.cropper.CropImageView
@@ -32,6 +33,7 @@
             android:visibility="gone"
             android:layout_marginStart="15dp"
             android:layout_marginEnd="15dp"
+            android:layout_centerInParent="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -39,8 +41,47 @@
         <com.wangrui.imagee.imagezoom.ImageViewTouch
             android:id="@+id/ivt_filter"
             android:visibility="gone"
+            android:layout_centerInParent="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <!-- 贴图 -->
+        <com.wangrui.imagee.sticker.StickerView
+            android:id="@+id/sv_sticker"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- 蒙版 -->
+        <LinearLayout
+            android:id="@+id/ll_mask_left"
+            android:orientation="horizontal"
+            android:background="#00f"
+            android:layout_alignParentStart="true"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+        <LinearLayout
+            android:id="@+id/ll_mask_top"
+            android:orientation="horizontal"
+            android:background="#00f"
+            android:layout_alignParentTop="true"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+        <LinearLayout
+            android:id="@+id/ll_mask_right"
+            android:orientation="horizontal"
+            android:background="#00f"
+            android:layout_alignParentEnd="true"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+        <LinearLayout
+            android:id="@+id/ll_mask_bottom"
+            android:orientation="horizontal"
+            android:background="#00f"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
 
 
 
@@ -121,6 +162,18 @@
     <!-- 滤镜 -->
     <com.wangrui.imagee.filter.ToolFilterView
         android:id="@+id/tool_filter_view"
+        android:background="@color/color_tool_bg"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
+
+    <!-- 贴纸 -->
+    <com.wangrui.imagee.sticker.ToolStickerView
+        android:id="@+id/tool_sticker_view"
         android:background="@color/color_tool_bg"
         android:clickable="true"
         android:focusable="true"

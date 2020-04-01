@@ -6,19 +6,30 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.TargetApi;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.transition.ChangeBounds;
 import android.transition.TransitionManager;
+import android.transition.Visibility;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -27,11 +38,19 @@ import com.wangrui.imagee.filter.FilterUtils;
 import com.wangrui.imagee.filter.ToolFilterView;
 import com.wangrui.imagee.imagezoom.ImageViewTouch;
 import com.wangrui.imagee.imagezoom.ImageViewTouchBase;
+import com.wangrui.imagee.sticker.StickerItem;
+import com.wangrui.imagee.sticker.StickerView;
+import com.wangrui.imagee.sticker.ToolStickerView;
 import com.wangrui.imagee.tools.ToolAdapter;
 import com.wangrui.imagee.tools.ToolType;
 import com.wangrui.imagee.utils.BitmapUtils;
+import com.wangrui.imagee.utils.LogUtils;
+import com.wangrui.imagee.utils.Matrix3;
 import com.wangrui.imagee.utils.ResUtils;
 import com.wangrui.imagee.utils.ToastUtils;
+
+import java.util.List;
+
 
 
 public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnToolSelectedListener {
@@ -41,6 +60,12 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private TextView mTvSave;
     private ToolCropView mToolCropView;
     private ToolFilterView mToolFilterView;
+    private ToolStickerView mToolStickerView;
+    // 蒙版
+    private LinearLayout mLlMaskLeft;
+    private LinearLayout mLlMaskTop;
+    private LinearLayout mLlMaskRight;
+    private LinearLayout mLlMaskBottom;
 
     // 约束
     private ConstraintLayout mRootViewLayout;
@@ -65,6 +90,11 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private ImageViewTouch mIvtFilter;
     // 滤镜 Bitmap
     public Bitmap mFilterBitmap;
+
+    // 贴图（贴图显示控件）
+    private StickerView mSvSticker;
+    // 异步保存贴图
+    private SaveStickersTask mSaveStickersTask;
 
     private String mImagePath;
 
@@ -110,6 +140,15 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mIvtFilter = findViewById(R.id.ivt_filter);
         setupToolFilterView();
 
+        // 贴纸
+        mSvSticker = findViewById(R.id.sv_sticker);
+        setupToolStickerView();
+
+        // 蒙版
+        mLlMaskLeft = findViewById(R.id.ll_mask_left);
+        mLlMaskTop = findViewById(R.id.ll_mask_top);
+        mLlMaskRight = findViewById(R.id.ll_mask_right);
+        mLlMaskBottom = findViewById(R.id.ll_mask_bottom);
 
         // 工具
         LinearLayoutManager toolLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -133,6 +172,30 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 ToastUtils.showSystemLongMessage("保存");
             }
         });
+
+        mIvtMain.setOnBitmapRectChangeListener(new ImageViewTouchBase.OnBitmapRectChangeListener() {
+            @Override
+            public void onBitmapRectChanged(RectF rectF) {
+                    int width = (int) rectF.width();
+                    int height = (int) rectF.height();
+                    int left = (int) rectF.left;
+                    int top = (int) rectF.top;
+                    int right = (int) rectF.right - width;
+                    int bottom = mIvtMain.getHeight() - (int) rectF.bottom;
+                    LogUtils.e("===================width", width);
+                    LogUtils.e("===================height", height);
+                    LogUtils.e("===================left", left);
+                    LogUtils.e("===================right", right);
+                    LogUtils.e("===================top", top);
+                    LogUtils.e("===================bottom", bottom);
+                    LogUtils.e("===================", "\n\n");
+                    updateMask(left, top, right, bottom);
+//                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSvSticker.getLayoutParams();
+//                params.width = width;
+//                params.height = height;
+//                mSvSticker.setLayoutParams(params);
+            }
+        });
     }
 
     @Override
@@ -147,7 +210,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 showToolFilterView(true);
                 break;
             case STICKER:
-                ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_sticker));
+                showStickerView(true);
+                showToolStickerView(true);
                 break;
             case DOODLING:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_doodling));
@@ -285,8 +349,65 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 updateFilterBitmap(newBitmap);
             }
         });
+    }
+    //</editor-fold>
 
 
+    //<editor-fold desc="贴纸">
+    private void showStickerView(boolean isVisiable) {
+        mSvSticker.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+    }
+
+    private void showToolStickerView(boolean isVisiable) {
+        mConstraintSet.clone(mRootViewLayout);
+
+        if (isVisiable) {
+            mConstraintSet.clear(mToolStickerView.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolStickerView.getId(), ConstraintSet.TOP,
+                    mRvTools.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolStickerView.getId(), ConstraintSet.BOTTOM,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        } else {
+            mConstraintSet.clear(mToolStickerView.getId(), ConstraintSet.TOP);
+            mConstraintSet.clear(mToolStickerView.getId(), ConstraintSet.BOTTOM);
+            mConstraintSet.connect(mToolStickerView.getId(), ConstraintSet.TOP,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        }
+
+        ChangeBounds changeBounds = new ChangeBounds();
+        changeBounds.setDuration(350);
+        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
+        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
+
+        mConstraintSet.applyTo(mRootViewLayout);
+    }
+
+    private void setupToolStickerView() {
+        mToolStickerView = findViewById(R.id.tool_sticker_view);
+
+        mToolStickerView.setOnToolStickerViewListener(new ToolStickerView.OnToolStickerViewListener() {
+            @Override
+            public void onClickCancel() {
+                showStickerView(false);
+                showToolStickerView(false);
+            }
+
+            @Override
+            public void onClickSure() {
+                mSaveStickersTask = new SaveStickersTask();
+                mSaveStickersTask.execute(mMainBitmap);
+                showStickerView(false);
+                showToolStickerView(false);
+            }
+
+            @Override
+            public void onStickerSelected(String stickerPath) {
+                Bitmap sticker = BitmapUtils.getStickerFromAssetsFile(stickerPath);
+                if (sticker != null) {
+                    mSvSticker.addBitImage(sticker);
+                }
+            }
+        });
     }
     //</editor-fold>
 
@@ -342,6 +463,25 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mIvtFilter.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
     }
 
+    private void updateMask(int left, int top, int right, int bottom) {
+//        RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
+//        paramsLeft.width = left;
+//        mLlMaskLeft.setLayoutParams(paramsLeft);
+//
+//        RelativeLayout.LayoutParams paramsTop = (RelativeLayout.LayoutParams) mLlMaskTop.getLayoutParams();
+//        paramsTop.height = top;
+//        mLlMaskTop.setLayoutParams(paramsTop);
+//
+//        RelativeLayout.LayoutParams paramsRight = (RelativeLayout.LayoutParams) mLlMaskRight.getLayoutParams();
+//        paramsRight.width = right;
+//        mLlMaskRight.setLayoutParams(paramsRight);
+//
+//        RelativeLayout.LayoutParams paramsBottom = (RelativeLayout.LayoutParams) mLlMaskBottom.getLayoutParams();
+//        paramsBottom.height = bottom;
+//        mLlMaskBottom.setLayoutParams(paramsBottom);
+    }
+
+    //<editor-fold desc="任务">
     private final class LoadImageTask extends AsyncTask<String, Void, Bitmap> {
         @Override
         protected Bitmap doInBackground(String... params) {
@@ -360,11 +500,58 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         }
     }
 
+    // 保存贴图任务
+    private final class SaveStickersTask extends AsyncTask<Bitmap, Void, Bitmap> {
+
+        @Override
+        protected Bitmap doInBackground(Bitmap... params) {
+            Bitmap resultBit = Bitmap.createBitmap(params[0]).copy(
+                    Bitmap.Config.RGB_565, true);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Matrix touchMatrix = mIvtMain.getImageViewMatrix();
+                    Canvas canvas = new Canvas(resultBit);
+
+                    float[] data = new float[9];
+                    // 底部图片变化记录矩阵原始数据
+                    touchMatrix.getValues(data);
+                    // 辅助矩阵计算类
+                    Matrix3 cal = new Matrix3(data);
+                    // 计算逆矩阵
+                    Matrix3 inverseMatrix = cal.inverseMatrix();
+                    Matrix m = new Matrix();
+                    m.setValues(inverseMatrix.getValues());
+
+                    List<StickerItem> addItems = mSvSticker.getBanks();
+                    for (StickerItem item : addItems) {
+                        // 乘以底部图片变化矩阵
+                        item.matrix.postConcat(m);
+                        canvas.drawBitmap(item.bitmap, item.matrix, null);
+                    }
+                }
+            });
+            return resultBit;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            super.onPostExecute(result);
+            mSvSticker.clear();
+            updateBitmap(result);
+        }
+    }
+    //</editor-fold>
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mLoadImageTask != null) {
             mLoadImageTask.cancel(true);
+        }
+        if (mSaveStickersTask != null) {
+            mSaveStickersTask.cancel(true);
         }
     }
 }

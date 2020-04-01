@@ -16,6 +16,7 @@
 
 package com.wangrui.imagee.utils;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -25,6 +26,10 @@ import android.graphics.Matrix;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.wangrui.imagee.utils.ResUtils.getResources;
 
 /**
  * BitmapUtils
@@ -41,11 +46,11 @@ public class BitmapUtils {
 	public static Bitmap loadImageByPath(final String imagePath, int reqWidth,
 			int reqHeight) {
 		File file = new File(imagePath);
-		if (file.length() < MAX_SZIE) {
+//		if (file.length() < MAX_SZIE) {
 			return getSampledBitmap(imagePath, reqWidth, reqHeight);
-		} else {// 压缩图片
-			return getImageCompress(imagePath);
-		}
+//		} else {// 压缩图片
+//			return getImageCompress(imagePath);
+//		}
 	}
 
 	public static Bitmap getSampledBitmap(String filePath, int reqWidth,
@@ -106,6 +111,7 @@ public class BitmapUtils {
 		bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
 		return compressImage(bitmap);// 压缩好比例大小后再进行质量压缩
 	}
+
 	// 图片质量压缩
 	private static Bitmap compressImage(Bitmap image) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -181,5 +187,17 @@ public class BitmapUtils {
 			return input;
 	}
 
-
+	// 从Assert文件夹中读取位图数据
+	public static Bitmap getStickerFromAssetsFile(String fileName) {
+		Bitmap image = null;
+		AssetManager am = getResources().getAssets();
+		try {
+			InputStream is = am.open(fileName);
+			image = BitmapFactory.decodeStream(is);
+			is.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return image;
+	}
 }

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -16,6 +17,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 
 import com.wangrui.imagee.imagezoom.easing.Cubic;
 import com.wangrui.imagee.imagezoom.easing.Easing;
+import com.wangrui.imagee.utils.LogUtils;
 import com.yalantis.ucrop.util.FastBitmapDrawable;
 
 
@@ -40,15 +42,16 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	public interface OnLayoutChangeListener {
 		/**
 		 * Callback invoked when the layout bounds changed
-		 * 
-		 * @param changed
-		 * @param left
-		 * @param top
-		 * @param right
-		 * @param bottom
 		 */
 		void onLayoutChanged(boolean changed, int left, int top, int right,
-                             int bottom);
+							 int bottom);
+	};
+
+	public interface OnBitmapRectChangeListener {
+		/**
+		 * Callback invoked when the layout bounds changed
+		 */
+		void onBitmapRectChanged(RectF rectF);
 	};
 
 	/**
@@ -106,6 +109,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 
 	private OnDrawableChangeListener mDrawableChangeListener;
 	private OnLayoutChangeListener mOnLayoutChangeListener;
+	private OnBitmapRectChangeListener mOnBitmapRectChangeListener;
 
 	public ImageViewTouchBase(Context context) {
 		super(context);
@@ -123,6 +127,10 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 
 	public void setOnLayoutChangeListener(OnLayoutChangeListener listener) {
 		mOnLayoutChangeListener = listener;
+	}
+
+	public void setOnBitmapRectChangeListener(OnBitmapRectChangeListener listener) {
+		mOnBitmapRectChangeListener = listener;
 	}
 
 	protected void init() {
@@ -303,10 +311,12 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 
 				center(true, true);
 
-				if (mBitmapChanged)
+				if (mBitmapChanged) {
 					onDrawableChanged(drawable);
-				if (changed || mBitmapChanged || mScaleTypeChanged)
+				}
+				if (changed || mBitmapChanged || mScaleTypeChanged) {
 					onLayoutChanged(left, top, right, bottom);
+				}
 
 				if (mScaleTypeChanged)
 					mScaleTypeChanged = false;
@@ -319,8 +329,9 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 			}
 		} else {
 			// drawable is null
-			if (mBitmapChanged)
+			if (mBitmapChanged) {
 				onDrawableChanged(drawable);
+			}
 			if (changed || mBitmapChanged || mScaleTypeChanged)
 				onLayoutChanged(left, top, right, bottom);
 
@@ -328,7 +339,6 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 				mBitmapChanged = false;
 			if (mScaleTypeChanged)
 				mScaleTypeChanged = false;
-
 		}
 	}
 
@@ -483,8 +493,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 			mNextMatrix = new Matrix(initial_matrix);
 		}
 
-		mBitmapChanged = true;
-		requestLayout();
+		resetDisplay();
 	}
 
 	/**
@@ -505,11 +514,19 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 			mOnLayoutChangeListener.onLayoutChanged(true, left, top, right,
 					bottom);
 		}
+        fireOnBitmapRectChangeListener();
 	}
 
 	protected void fireOnDrawableChangeListener(Drawable drawable) {
 		if (null != mDrawableChangeListener) {
 			mDrawableChangeListener.onDrawableChanged(drawable);
+		}
+		fireOnBitmapRectChangeListener();
+	}
+
+	protected void fireOnBitmapRectChangeListener() {
+		if (null != mOnBitmapRectChangeListener) {
+			mOnBitmapRectChangeListener.onBitmapRectChanged(mBitmapRect);
 		}
 	}
 
