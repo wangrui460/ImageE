@@ -53,6 +53,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
+        <!-- 文字 -->
+        <com.wangrui.imagee.text.LabelTextView
+            android:id="@+id/ltv_text"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+
         <!-- 蒙版 -->
         <LinearLayout
             android:id="@+id/ll_mask_left"
@@ -174,6 +183,18 @@
     <!-- 贴纸 -->
     <com.wangrui.imagee.sticker.ToolStickerView
         android:id="@+id/tool_sticker_view"
+        android:background="@color/color_tool_bg"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content" />
+
+    <!-- 文字 -->
+    <com.wangrui.imagee.text.ToolTextView
+        android:id="@+id/tool_text_view"
         android:background="@color/color_tool_bg"
         android:clickable="true"
         android:focusable="true"

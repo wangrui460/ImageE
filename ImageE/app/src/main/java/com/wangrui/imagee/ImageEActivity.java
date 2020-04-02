@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -35,15 +36,21 @@ import com.wangrui.imagee.imagezoom.ImageViewTouchBase;
 import com.wangrui.imagee.sticker.StickerItem;
 import com.wangrui.imagee.sticker.StickerView;
 import com.wangrui.imagee.sticker.ToolStickerView;
+import com.wangrui.imagee.text.LabelTextView;
+import com.wangrui.imagee.text.TextItem;
+import com.wangrui.imagee.text.ToolTextView;
 import com.wangrui.imagee.tools.ToolAdapter;
 import com.wangrui.imagee.tools.ToolType;
 import com.wangrui.imagee.utils.BitmapUtils;
+import com.wangrui.imagee.utils.LogUtils;
 import com.wangrui.imagee.utils.Matrix3;
 import com.wangrui.imagee.utils.ResUtils;
 import com.wangrui.imagee.utils.ToastUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnToolSelectedListener {
@@ -54,6 +61,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private ToolCropView mToolCropView;
     private ToolFilterView mToolFilterView;
     private ToolStickerView mToolStickerView;
+    private ToolTextView mToolTextView;
     // 蒙版
     private LinearLayout mLlMaskLeft;
     private LinearLayout mLlMaskTop;
@@ -90,6 +98,12 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private StickerView mSvSticker;
     // 异步保存贴图
     private SaveStickersTask mSaveStickersTask;
+
+    // 文字（文字显示控件）
+    private LabelTextView mLtvText;
+    // 异步保存文字
+    private SaveTextsTask mSaveTextsTask;
+
 
     private String mImagePath;
 
@@ -138,6 +152,10 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         // 贴纸
         mSvSticker = findViewById(R.id.sv_sticker);
         setupToolStickerView();
+
+        // 文字
+        mLtvText = findViewById(R.id.ltv_text);
+        setupToolTextView();
 
         // 蒙版
         mLlMaskLeft = findViewById(R.id.ll_mask_left);
@@ -191,7 +209,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_doodling));
                 break;
             case TEXT:
-                ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_text));
+                showTextView(true);
+                showToolTextView(true);
                 break;
             case MOSAIC:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_mosaic));
@@ -221,11 +240,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                     ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         }
 
-        ChangeBounds changeBounds = new ChangeBounds();
-        changeBounds.setDuration(350);
-        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
-        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
-
+        updateRootViewAnimate();
         mConstraintSet.applyTo(mRootViewLayout);
     }
 
@@ -292,11 +307,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                     ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         }
 
-        ChangeBounds changeBounds = new ChangeBounds();
-        changeBounds.setDuration(350);
-        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
-        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
-
+        updateRootViewAnimate();
         mConstraintSet.applyTo(mRootViewLayout);
     }
 
@@ -349,11 +360,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                     ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
         }
 
-        ChangeBounds changeBounds = new ChangeBounds();
-        changeBounds.setDuration(350);
-        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
-        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
-
+        updateRootViewAnimate();
         mConstraintSet.applyTo(mRootViewLayout);
     }
 
@@ -381,6 +388,54 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 if (sticker != null) {
                     mSvSticker.addBitImage(sticker);
                 }
+            }
+        });
+    }
+    //</editor-fold>
+
+
+    //<editor-fold desc="文字">
+    private void showTextView(boolean isVisiable) {
+        mLtvText.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+        showMask(isVisiable);
+    }
+
+    private void showToolTextView(boolean isVisiable) {
+        mConstraintSet.clone(mRootViewLayout);
+
+        if (isVisiable) {
+            mConstraintSet.clear(mToolTextView.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolTextView.getId(), ConstraintSet.TOP,
+                    mRvTools.getId(), ConstraintSet.TOP);
+            mConstraintSet.connect(mToolTextView.getId(), ConstraintSet.BOTTOM,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        } else {
+            mConstraintSet.clear(mToolTextView.getId(), ConstraintSet.TOP);
+            mConstraintSet.clear(mToolTextView.getId(), ConstraintSet.BOTTOM);
+            mConstraintSet.connect(mToolTextView.getId(), ConstraintSet.TOP,
+                    ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM);
+        }
+
+        updateRootViewAnimate();
+        mConstraintSet.applyTo(mRootViewLayout);
+    }
+
+    private void setupToolTextView() {
+        mToolTextView = findViewById(R.id.tool_text_view);
+
+        mToolTextView.setOnToolTextViewListener(new ToolTextView.OnToolTextViewListener() {
+            @Override
+            public void onClickCancel() {
+                showTextView(false);
+                showToolTextView(false);
+            }
+
+            @Override
+            public void onClickSure() {
+                mSaveTextsTask = new SaveTextsTask();
+                mSaveTextsTask.execute(mMainBitmap);
+                showTextView(false);
+                showToolTextView(false);
             }
         });
     }
@@ -446,6 +501,10 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         int top = isVisiable ? (int) mMainBitmapRectF.top : 0;
         int right = isVisiable ? ((int) mMainBitmapRectF.right - width) : 0;
         int bottom = isVisiable ? (mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom) : 0;
+        mLlMaskLeft.setAlpha(0);
+        mLlMaskTop.setAlpha(0);
+        mLlMaskRight.setAlpha(0);
+        mLlMaskBottom.setAlpha(0);
         if (width > 0 && height > 0) {
             RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
             paramsLeft.width = left;
@@ -463,6 +522,31 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             paramsBottom.height = bottom;
             mLlMaskBottom.setLayoutParams(paramsBottom);
         }
+
+        if (isVisiable) {
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLlMaskLeft.setAlpha(1);
+                            mLlMaskTop.setAlpha(1);
+                            mLlMaskRight.setAlpha(1);
+                            mLlMaskBottom.setAlpha(1);
+                        }
+                    });
+                }
+            }, 400);
+        }
+    }
+
+    private void updateRootViewAnimate() {
+        ChangeBounds changeBounds = new ChangeBounds();
+        changeBounds.setDuration(350);
+        changeBounds.setInterpolator(new AnticipateOvershootInterpolator(1.0f));
+        TransitionManager.beginDelayedTransition(mRootViewLayout, changeBounds);
     }
 
     //<editor-fold desc="任务">
@@ -486,7 +570,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
     // 保存贴图任务
     private final class SaveStickersTask extends AsyncTask<Bitmap, Void, Bitmap> {
-
         @Override
         protected Bitmap doInBackground(Bitmap... params) {
             Bitmap resultBit = Bitmap.createBitmap(params[0]).copy(
@@ -523,6 +606,33 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         protected void onPostExecute(Bitmap result) {
             super.onPostExecute(result);
             mSvSticker.clear();
+            updateBitmap(result);
+        }
+    }
+
+    private final class SaveTextsTask extends AsyncTask<Bitmap, Void, Bitmap> {
+        @Override
+        protected Bitmap doInBackground(Bitmap... params) {
+            Bitmap resultBit = Bitmap.createBitmap(params[0]).copy(Bitmap.Config.RGB_565, true);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Matrix touchMatrix = mIvtMain.getImageViewMatrix();
+                    Canvas canvas = new Canvas(resultBit);
+                    ArrayList<TextItem> addItems = mLtvText.getBanks();
+                    for (TextItem item : addItems) {
+                        // 输出文本到图片，合成新的图片
+                        item.drawText(canvas, touchMatrix);
+                    }
+                }
+            });
+            return resultBit;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap result) {
+            super.onPostExecute(result);
+            mLtvText.clear();
             updateBitmap(result);
         }
     }

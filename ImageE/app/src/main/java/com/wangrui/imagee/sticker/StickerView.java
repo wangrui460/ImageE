@@ -17,7 +17,6 @@ import java.util.List;
  * 贴图操作控件
  * 
  * @author panyi
- * 
  */
 public class StickerView extends View {
 
@@ -26,8 +25,10 @@ public class StickerView extends View {
 	private static int STATUS_DELETE = 2;	// 删除状态
 	private static int STATUS_ROTATE = 3;	// 图片旋转状态
 
-	private int currentStatus;// 当前状态
-	private StickerItem currentItem;// 当前操作的贴图数据
+	// 当前状态
+	private int currentStatus;
+	// 当前操作的贴图数据
+	private StickerItem currentItem;
 	private float oldx, oldy;
 
 	private Paint rectPaint = new Paint();
