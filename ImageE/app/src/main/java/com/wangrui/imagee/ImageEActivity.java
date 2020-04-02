@@ -1,28 +1,16 @@
 package com.wangrui.imagee;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.annotation.TargetApi;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.transition.ChangeBounds;
 import android.transition.TransitionManager;
-import android.transition.Visibility;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
@@ -31,6 +19,12 @@ import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.theartofdev.edmodo.cropper.CropImageView;
 import com.wangrui.imagee.crop.ToolCropView;
@@ -44,7 +38,6 @@ import com.wangrui.imagee.sticker.ToolStickerView;
 import com.wangrui.imagee.tools.ToolAdapter;
 import com.wangrui.imagee.tools.ToolType;
 import com.wangrui.imagee.utils.BitmapUtils;
-import com.wangrui.imagee.utils.LogUtils;
 import com.wangrui.imagee.utils.Matrix3;
 import com.wangrui.imagee.utils.ResUtils;
 import com.wangrui.imagee.utils.ToastUtils;
@@ -80,6 +73,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private int mImageWidth, mImageHeight;
     // 主图显示 Bitmap
     public Bitmap mMainBitmap;
+    // 主图 实际显示 rectf
+    private RectF mMainBitmapRectF;
     // 异步载入图片
     private LoadImageTask mLoadImageTask;
 
@@ -173,29 +168,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             }
         });
 
-        mIvtMain.setOnBitmapRectChangeListener(new ImageViewTouchBase.OnBitmapRectChangeListener() {
-            @Override
-            public void onBitmapRectChanged(RectF rectF) {
-                    int width = (int) rectF.width();
-                    int height = (int) rectF.height();
-                    int left = (int) rectF.left;
-                    int top = (int) rectF.top;
-                    int right = (int) rectF.right - width;
-                    int bottom = mIvtMain.getHeight() - (int) rectF.bottom;
-                    LogUtils.e("===================width", width);
-                    LogUtils.e("===================height", height);
-                    LogUtils.e("===================left", left);
-                    LogUtils.e("===================right", right);
-                    LogUtils.e("===================top", top);
-                    LogUtils.e("===================bottom", bottom);
-                    LogUtils.e("===================", "\n\n");
-                    updateMask(left, top, right, bottom);
-//                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) mSvSticker.getLayoutParams();
-//                params.width = width;
-//                params.height = height;
-//                mSvSticker.setLayoutParams(params);
-            }
-        });
+        mIvtMain.setOnBitmapRectChangeListener(rectF
+                -> mMainBitmapRectF = rectF);
     }
 
     @Override
@@ -356,6 +330,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     //<editor-fold desc="贴纸">
     private void showStickerView(boolean isVisiable) {
         mSvSticker.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+        showMask(isVisiable);
     }
 
     private void showToolStickerView(boolean isVisiable) {
@@ -463,22 +438,31 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mIvtFilter.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
     }
 
-    private void updateMask(int left, int top, int right, int bottom) {
-//        RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
-//        paramsLeft.width = left;
-//        mLlMaskLeft.setLayoutParams(paramsLeft);
-//
-//        RelativeLayout.LayoutParams paramsTop = (RelativeLayout.LayoutParams) mLlMaskTop.getLayoutParams();
-//        paramsTop.height = top;
-//        mLlMaskTop.setLayoutParams(paramsTop);
-//
-//        RelativeLayout.LayoutParams paramsRight = (RelativeLayout.LayoutParams) mLlMaskRight.getLayoutParams();
-//        paramsRight.width = right;
-//        mLlMaskRight.setLayoutParams(paramsRight);
-//
-//        RelativeLayout.LayoutParams paramsBottom = (RelativeLayout.LayoutParams) mLlMaskBottom.getLayoutParams();
-//        paramsBottom.height = bottom;
-//        mLlMaskBottom.setLayoutParams(paramsBottom);
+    // 防止贴图、涂鸦、文字等拖动超过边界任然显示
+    private void showMask(boolean isVisiable) {
+        int width = (int) mMainBitmapRectF.width();
+        int height = (int) mMainBitmapRectF.height();
+        int left = isVisiable ? (int) mMainBitmapRectF.left : 0;
+        int top = isVisiable ? (int) mMainBitmapRectF.top : 0;
+        int right = isVisiable ? ((int) mMainBitmapRectF.right - width) : 0;
+        int bottom = isVisiable ? (mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom) : 0;
+        if (width > 0 && height > 0) {
+            RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
+            paramsLeft.width = left;
+            mLlMaskLeft.setLayoutParams(paramsLeft);
+
+            RelativeLayout.LayoutParams paramsTop = (RelativeLayout.LayoutParams) mLlMaskTop.getLayoutParams();
+            paramsTop.height = top;
+            mLlMaskTop.setLayoutParams(paramsTop);
+
+            RelativeLayout.LayoutParams paramsRight = (RelativeLayout.LayoutParams) mLlMaskRight.getLayoutParams();
+            paramsRight.width = right;
+            mLlMaskRight.setLayoutParams(paramsRight);
+
+            RelativeLayout.LayoutParams paramsBottom = (RelativeLayout.LayoutParams) mLlMaskBottom.getLayoutParams();
+            paramsBottom.height = bottom;
+            mLlMaskBottom.setLayoutParams(paramsBottom);
+        }
     }
 
     //<editor-fold desc="任务">
