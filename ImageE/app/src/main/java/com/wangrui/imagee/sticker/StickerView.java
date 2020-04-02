@@ -22,9 +22,9 @@ import java.util.List;
 public class StickerView extends View {
 
 	private static int STATUS_IDLE = 0;
-	private static int STATUS_MOVE = 1;// 移动状态
-	private static int STATUS_DELETE = 2;// 删除状态
-	private static int STATUS_ROTATE = 3;// 图片旋转状态
+	private static int STATUS_MOVE = 1;		// 移动状态
+	private static int STATUS_DELETE = 2;	// 删除状态
+	private static int STATUS_ROTATE = 3;	// 图片旋转状态
 
 	private int currentStatus;// 当前状态
 	private StickerItem currentItem;// 当前操作的贴图数据
@@ -62,7 +62,7 @@ public class StickerView extends View {
 		StickerItem item = new StickerItem(this.getContext());
 		item.init(addBit, this);
 		if (currentItem != null) {
-			currentItem.isDrawHelpTool = false;
+			currentItem.mIsDrawHelpTool = false;
 		}
         banks.add(item);
 		this.invalidate();// 重绘视图
@@ -95,7 +95,8 @@ public class StickerView extends View {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		boolean ret = super.onTouchEvent(event);// 是否向下传递事件标志 true为消耗
+		// 是否向下传递事件标志 true为消耗
+		boolean ret = super.onTouchEvent(event);
 
 		int action = event.getAction();
 		float x = event.getX();
@@ -103,50 +104,50 @@ public class StickerView extends View {
 		switch (action & MotionEvent.ACTION_MASK) {
 		case MotionEvent.ACTION_DOWN:
 
-            StickerItem deleteItem = null;
 			for (StickerItem item : banks) {
-				if (item.detectDeleteRect.contains(x, y)) {// 删除模式
-					// ret = true;
-                    deleteItem = item;
-					currentStatus = STATUS_DELETE;
-				} else if (item.detectRotateRect.contains(x, y)) {// 点击了旋转按钮
+				boolean isDelete = item.mDetectDeleteRect.contains(x, y);
+				boolean isRotate = item.mDetectRotateRect.contains(x, y);
+				boolean isMove = item.mDestRect.contains(x, y);
+				if (isDelete || isRotate || isMove) {
 					ret = true;
 					if (currentItem != null) {
-						currentItem.isDrawHelpTool = false;
+						currentItem.mIsDrawHelpTool = false;
 					}
 					currentItem = item;
-					currentItem.isDrawHelpTool = true;
-					currentStatus = STATUS_ROTATE;
-					oldx = x;
-					oldy = y;
-				} else if (item.dstRect.contains(x, y)) {// 移动模式
-					// 被选中一张贴图
-					ret = true;
-					if (currentItem != null) {
-						currentItem.isDrawHelpTool = false;
-					}
-					currentItem = item;
-					currentItem.isDrawHelpTool = true;
-					currentStatus = STATUS_MOVE;
+					currentItem.mIsDrawHelpTool = true;
 					oldx = x;
 					oldy = y;
 				}
+
+				if (isDelete) {
+					// 删除模式
+					currentStatus = STATUS_DELETE;
+				} else if (isRotate) {
+					// 点击了旋转按钮
+					currentStatus = STATUS_ROTATE;
+				} else if (isMove) {
+					// 移动模式/被选中一张贴图
+					currentStatus = STATUS_MOVE;
+				}
 			}
 
-			if (!ret && currentItem != null && currentStatus == STATUS_IDLE) {// 没有贴图被选择
-				currentItem.isDrawHelpTool = false;
+			if (!ret && currentItem != null && currentStatus == STATUS_IDLE) {
+				// 没有贴图被选择
+				currentItem.mIsDrawHelpTool = false;
 				currentItem = null;
 				invalidate();
 			}
 
-			if (deleteItem != null && currentStatus == STATUS_DELETE) {// 删除选定贴图
-                banks.remove(deleteItem);
+			if (currentItem != null && currentStatus == STATUS_DELETE) {
+				// 删除选定贴图
+				banks.remove(currentItem);
+				currentItem.mIsDrawHelpTool = false;
+				currentItem = null;
 				currentStatus = STATUS_IDLE;// 返回空闲状态
 				invalidate();
 			}
 
 			updateCurrentBitImage();
-
 			break;
 		case MotionEvent.ACTION_MOVE:
 			ret = true;

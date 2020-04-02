@@ -511,8 +511,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                     List<StickerItem> addItems = mSvSticker.getBanks();
                     for (StickerItem item : addItems) {
                         // 乘以底部图片变化矩阵
-                        item.matrix.postConcat(m);
-                        canvas.drawBitmap(item.bitmap, item.matrix, null);
+                        item.mMatrix.postConcat(m);
+                        canvas.drawBitmap(item.getMainBitmap(), item.mMatrix, null);
                     }
                 }
             });

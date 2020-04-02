@@ -242,8 +242,8 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 				float new_matrix_scale = getScale(mBaseMatrix);
 
 				if (LOG_ENABLED) {
-					Log.d(LOG_TAG, "old matrix scale: " + old_matrix_scale);
-					Log.d(LOG_TAG, "new matrix scale: " + new_matrix_scale);
+					Log.d(LOG_TAG, "old mMatrix scale: " + old_matrix_scale);
+					Log.d(LOG_TAG, "new mMatrix scale: " + new_matrix_scale);
 					Log.d(LOG_TAG, "old min scale: " + old_min_scale);
 					Log.d(LOG_TAG, "old scale: " + old_scale);
 				}
@@ -370,7 +370,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	}
 
 	/**
-	 * {@inheritDoc} Set the new image to display and reset the internal matrix.
+	 * {@inheritDoc} Set the new image to display and reset the internal mMatrix.
 	 * 
 	 * @param bitmap
 	 *            the {@link Bitmap} to display
@@ -411,7 +411,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	 * @param drawable
 	 *            the new drawable
 	 * @param initial_matrix
-	 *            the optional initial display matrix
+	 *            the optional initial display mMatrix
 	 * @param min_zoom
 	 *            the optional minimum scale, pass {@link #ZOOM_INVALID} to use
 	 *            the default min_zoom
@@ -606,7 +606,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	}
 
 	/**
-	 * Returns the current view matrix
+	 * Returns the current view mMatrix
 	 * 
 	 * @return
 	 */
@@ -646,8 +646,8 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	}
 
 	/**
-	 * Returns the current image display matrix.<br />
-	 * This matrix can be used in the next call to the
+	 * Returns the current image display mMatrix.<br />
+	 * This mMatrix can be used in the next call to the
 	 * {@link #setImageDrawable(Drawable, Matrix, float, float)} to restore the
 	 * same view state of the previous {@link Bitmap}.<br />
 	 * Example:
@@ -657,14 +657,14 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	 * mImageView.setImageBitmap(newBitmap, currentMatrix, ZOOM_INVALID, ZOOM_INVALID);
 	 * </pre>
 	 * 
-	 * @return the current support matrix
+	 * @return the current support mMatrix
 	 */
 	public Matrix getDisplayMatrix() {
 		return new Matrix(mSuppMatrix);
 	}
 
 	/**
-	 * Setup the base matrix so that the image is centered and scaled properly.
+	 * Setup the base mMatrix so that the image is centered and scaled properly.
 	 * 
 	 * @param drawable
 	 * @param matrix
@@ -710,7 +710,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 	}
 
 	/**
-	 * Setup the base matrix so that the image is centered and scaled properly.
+	 * Setup the base mMatrix so that the image is centered and scaled properly.
 	 * 
 	 * @param bitmap
 	 * @param matrix
@@ -745,7 +745,7 @@ public abstract class ImageViewTouchBase extends AppCompatImageView {
 		float scaley = getValue(matrix, Matrix.MSCALE_Y);
 		float tx = getValue(matrix, Matrix.MTRANS_X);
 		float ty = getValue(matrix, Matrix.MTRANS_Y);
-		Log.d(LOG_TAG, "matrix: { x: " + tx + ", y: " + ty + ", scalex: "
+		Log.d(LOG_TAG, "mMatrix: { x: " + tx + ", y: " + ty + ", scalex: "
 				+ scalex + ", scaley: " + scaley + " }");
 	}
 
