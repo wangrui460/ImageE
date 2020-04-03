@@ -18,7 +18,8 @@ import com.wangrui.imagee.R;
 /**
  * 贴纸
  *
- * @author panyi
+ * created by WR
+ * 时间：2020-03-27 15:14
  */
 public class StickerItem {
     // 最小缩放比例

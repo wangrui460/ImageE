@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ll_cancel"
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/add_text_color_picker_relative_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <RelativeLayout
+        android:id="@+id/add_text_color_picker_relative_layout"
+        android:background="@color/color_tool_bg"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true">
+
+        <EditText
+            android:id="@+id/et_text"
+            android:padding="10dp"
+            android:layout_toStartOf="@id/iv_sure"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="15dp"
+            android:maxLines="1"
+            android:layout_centerVertical="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/iv_sure"
+            android:src="@drawable/ic_tool_setting_sure"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="15dp"
+            android:layout_centerVertical="true"
+            android:layout_width="50dp"
+            android:layout_height="50dp" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

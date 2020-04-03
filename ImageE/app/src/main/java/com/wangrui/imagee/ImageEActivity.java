@@ -212,6 +212,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 showToolTextView(true);
                 DelayUtils.doSomethingInDelayOnUiThread(this, 400,
                         () -> mLtvText.addText("点击输入文字"));
+                TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(this);
                 break;
             case MOSAIC:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_mosaic));

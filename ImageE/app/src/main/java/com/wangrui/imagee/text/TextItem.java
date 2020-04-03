@@ -19,7 +19,10 @@ import com.wangrui.imagee.utils.MatrixUtils;
 import com.wangrui.imagee.utils.PointUtils;
 
 /**
- * @author alafighting 2016-02
+ *
+ *
+ * created by WR
+ * 时间：2020-03-27 15:14
  */
 public class TextItem {
 
@@ -222,9 +225,7 @@ public class TextItem {
 
 
 
-    /**
-     * 目标绘制矩形
-     */
+    // 目标绘制矩形
     public static class TargetRect {
         final int originalWidth;  // 原始宽
         final int originalHeight; // 原始高

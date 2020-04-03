@@ -13,8 +13,10 @@ import com.wangrui.imagee.utils.PointUtils;
 import java.util.ArrayList;
 
 /**
- * 标签操作控件
- * @author panyi
+ * 文本操作控件
+ *
+ * created by WR
+ * 时间：2020-03-27 15:14
  */
 public class LabelTextView extends AppCompatTextView {
 

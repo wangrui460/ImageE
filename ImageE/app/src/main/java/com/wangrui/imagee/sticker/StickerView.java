@@ -16,7 +16,8 @@ import java.util.List;
 /**
  * 贴图操作控件
  * 
- * @author panyi
+ * created by WR
+ * 时间：2020-03-27 15:14
  */
 public class StickerView extends View {
 
