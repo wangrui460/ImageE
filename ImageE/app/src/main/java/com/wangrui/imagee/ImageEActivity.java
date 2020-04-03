@@ -20,7 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
@@ -42,7 +41,7 @@ import com.wangrui.imagee.text.ToolTextView;
 import com.wangrui.imagee.tools.ToolAdapter;
 import com.wangrui.imagee.tools.ToolType;
 import com.wangrui.imagee.utils.BitmapUtils;
-import com.wangrui.imagee.utils.LogUtils;
+import com.wangrui.imagee.utils.DelayUtils;
 import com.wangrui.imagee.utils.Matrix3;
 import com.wangrui.imagee.utils.ResUtils;
 import com.wangrui.imagee.utils.ToastUtils;
@@ -211,6 +210,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             case TEXT:
                 showTextView(true);
                 showToolTextView(true);
+                DelayUtils.doSomethingInDelayOnUiThread(this, 400,
+                        () -> mLtvText.addText("点击输入文字"));
                 break;
             case MOSAIC:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_mosaic));
@@ -372,6 +373,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             public void onClickCancel() {
                 showStickerView(false);
                 showToolStickerView(false);
+                mSvSticker.clear();
             }
 
             @Override
@@ -428,6 +430,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             public void onClickCancel() {
                 showTextView(false);
                 showToolTextView(false);
+                mLtvText.clear();
             }
 
             @Override
@@ -524,21 +527,12 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         }
 
         if (isVisiable) {
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLlMaskLeft.setAlpha(1);
-                            mLlMaskTop.setAlpha(1);
-                            mLlMaskRight.setAlpha(1);
-                            mLlMaskBottom.setAlpha(1);
-                        }
-                    });
-                }
-            }, 400);
+            DelayUtils.doSomethingInDelayOnUiThread(this, 400, () -> {
+                mLlMaskLeft.setAlpha(1);
+                mLlMaskTop.setAlpha(1);
+                mLlMaskRight.setAlpha(1);
+                mLlMaskBottom.setAlpha(1);
+            });
         }
     }
 

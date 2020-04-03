@@ -12,11 +12,9 @@ import android.graphics.Paint.Style;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.view.View;
 
 import com.wangrui.imagee.R;
-import com.wangrui.imagee.utils.DisplayInfoUtils;
 import com.wangrui.imagee.utils.MatrixUtils;
 import com.wangrui.imagee.utils.PointUtils;
 
@@ -25,43 +23,204 @@ import com.wangrui.imagee.utils.PointUtils;
  */
 public class TextItem {
 
-    public static class Size {
-        private int mWidth;
-        private int mHeight;
+    private static final float MIN_SCALE = 0.2f;
+    private static final int HELP_BOX_PAD = 20;
+    private static final int HELP_BOX_PAD_BOTTOM = 30;
+    private final int BUTTON_WIDTH = 30;
+    private final int DEFAULT_TEXT_SIZE = 100;
 
-        public Size(int width, int height) {
-            mWidth = width;
-            mHeight = height;
+    // 绘制文本
+    private String mText;
+    // 画笔
+    public Paint mTextPaint;
+    // 目标位置
+    public TargetRect mTargetRect;
+    // 删除、缩放按钮 宽高
+    private int mButtonWidth;
+    private int mButtonHeight;
+
+    boolean mIsDrawHelpTool = false;
+    private Paint mHelpBoxPaint = new Paint();
+
+    private static Bitmap mDeleteBit;
+    private static Bitmap mRotateBit;
+
+    public TextItem(Context context) {
+
+        mHelpBoxPaint.setColor(Color.WHITE);
+        mHelpBoxPaint.setStyle(Style.STROKE);
+        mHelpBoxPaint.setAntiAlias(true);
+        mHelpBoxPaint.setStrokeWidth(4);
+
+        mTextPaint = new Paint();
+        mTextPaint.setTextSize(DEFAULT_TEXT_SIZE);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
+        mTextPaint.setColor(Color.WHITE);
+        mTextPaint.setAntiAlias(true);
+
+        // 导入工具按钮位图
+        if (mDeleteBit == null) {
+            mDeleteBit = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_sticker_delete);
+        }
+        if (mRotateBit == null) {
+            mRotateBit = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_sticker_rotate);
         }
 
-        public int getWidth() {
-            return mWidth;
+        mButtonWidth = mDeleteBit.getWidth();
+        mButtonHeight = mDeleteBit.getHeight();
+    }
+
+
+    public void init(String text, View parentView) {
+        mText = text;
+        Rect srcRect = new Rect();
+        mTextPaint.getTextBounds(text, 0, text.length(), srcRect);
+
+        int halfWidth = parentView.getWidth() >> 1;
+        int halfHeight = parentView.getHeight() >> 1;
+        int bitWidth = Math.min(srcRect.width(), halfWidth);
+        int bitHeight = (bitWidth * srcRect.height() / srcRect.width());
+        mTargetRect = new TargetRect(halfWidth, halfHeight, bitWidth, bitHeight);
+
+        mIsDrawHelpTool = true;
+    }
+
+    // 位置更新
+    public void updatePos(final float dx, final float dy) {
+        mTargetRect.moveBy(dx, dy);
+    }
+
+    // 旋转 缩放 更新
+    public void updateRotateAndScale(final float dx, final float dy) {
+        float centerX = mTargetRect.centerX();
+        float centerY = mTargetRect.centerY();
+
+        Point rbPoint = getRightBottomPoint();
+        float right = rbPoint.x;
+        float bottom = rbPoint.y;
+
+        float n_x = right + dx;
+        float n_y = bottom + dy;
+
+        float xa = right - centerX;
+        float ya = bottom - centerY;
+
+        float xb = n_x - centerX;
+        float yb = n_y - centerY;
+
+        float srcLen = (float) Math.sqrt(xa * xa + ya * ya);
+        float curLen = (float) Math.sqrt(xb * xb + yb * yb);
+
+        float scale = curLen / srcLen;// 计算缩放比
+
+        float newCcale = mTargetRect.scale * scale;
+        if (newCcale < MIN_SCALE) {// 最小缩放值检测
+            return;
         }
 
-        public int getHeight() {
-            return mHeight;
-        }
+        // 缩放
+        mTargetRect.scale = mTargetRect.scale * scale;
 
-        @Override
-        public boolean equals(final Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (this == obj) {
-                return true;
-            }
-            if (obj instanceof Size) {
-                Size other = (Size) obj;
-                return mWidth == other.mWidth && mHeight == other.mHeight;
-            }
-            return false;
-        }
+        double cos = (xa * xb + ya * yb) / (srcLen * curLen);
+        if (cos > 1 || cos < -1)
+            return;
+        float angle = (float) Math.toDegrees(Math.acos(cos));
 
-        @Override
-        public String toString() {
-            return mWidth + "x" + mHeight;
+        // 拉普拉斯定理
+        float calMatrix = xa * yb - xb * ya;// 行列式计算 确定转动方向
+
+        int flag = calMatrix > 0 ? 1 : -1;
+        angle = flag * angle;
+
+        // 旋转
+        mTargetRect.rotate += angle;
+    }
+
+    public void draw(Canvas canvas) {
+        drawText(canvas, mTargetRect);
+
+        if (mIsDrawHelpTool) {
+            // 绘制辅助工具线
+            canvas.save();
+            canvas.rotate(mTargetRect.rotate, mTargetRect.centerX(), mTargetRect.centerY());
+            canvas.drawRoundRect(generateHelpToolRect(), 10, 10, mHelpBoxPaint);
+            // 绘制工具按钮
+            canvas.drawBitmap(mDeleteBit, new Rect(0, 0, mButtonWidth, mButtonHeight), generateDeleteRect(), null);
+            canvas.drawBitmap(mRotateBit, new Rect(0, 0, mButtonWidth, mButtonHeight), generateRotateRect(), null);
+            canvas.restore();
         }
     }
+
+    public void drawText(Canvas canvas, Matrix matrix) {
+        float scale = MatrixUtils.getValue(matrix, Matrix.MSCALE_X);
+        float moveX = MatrixUtils.getValue(matrix, Matrix.MTRANS_X);
+        float moveY = MatrixUtils.getValue(matrix, Matrix.MTRANS_Y);
+        TargetRect targetRect = mTargetRect.clone();
+        targetRect.centerX = (targetRect.centerX() - moveX) / scale;
+        targetRect.centerY = (targetRect.centerY() - moveY) / scale;
+        targetRect.scale = targetRect.scale / scale;
+        drawText(canvas, targetRect);
+    }
+
+    private void drawText(Canvas canvas, TargetRect targetRect) {
+        mTextPaint.setTextSize(DEFAULT_TEXT_SIZE * targetRect.scale);
+        float rotate = targetRect.rotate;
+        float centerX = targetRect.centerX();
+        float centerY = targetRect.centerY();
+        canvas.save();
+        canvas.rotate(rotate, centerX, centerY);
+        canvas.drawText(mText, centerX, centerY + targetRect.height() / 2, mTextPaint);
+        canvas.restore();
+    }
+
+    private Point getRightBottomPoint() {
+        float centerX = mTargetRect.centerX();
+        float centerY = mTargetRect.centerY();
+
+        Rect rect = generateTextRect();
+        float right = centerX + rect.width()/2f;
+        float bottom = centerY + rect.height()/2f;
+
+        // 旋转坐标，得到真实坐标
+        Point point = new Point((int)right, (int)bottom);
+        point = PointUtils.rotatePoint(point, new Point((int)centerX, (int)centerY), mTargetRect.rotate);
+        return point;
+    }
+
+    private Rect generateTextRect() {
+        Rect srcRect = new Rect();
+        mTextPaint.setTextSize(DEFAULT_TEXT_SIZE * mTargetRect.scale);
+        mTextPaint.getTextBounds(mText, 0, mText.length(), srcRect);
+        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
+        int offset = (int) Math.abs(fontMetrics.leading * 0.3);
+        srcRect.set(srcRect.left - offset, srcRect.top - offset, srcRect.right + offset, srcRect.bottom + offset);
+        return srcRect;
+    }
+
+    private RectF generateHelpToolRect() {
+        Rect rect = generateTextRect();
+        float left = mTargetRect.centerX - rect.width()/2f - HELP_BOX_PAD;
+        float top = mTargetRect.centerY - rect.height()/2f - HELP_BOX_PAD;
+        float right = mTargetRect.centerX + rect.width()/2f + HELP_BOX_PAD;
+        float bottom = mTargetRect.centerY + rect.height()/2f + HELP_BOX_PAD_BOTTOM;
+        return new RectF(left, top, right, bottom);
+    }
+
+    RectF generateDeleteRect() {
+        RectF rectf = generateHelpToolRect();
+        float left = mTargetRect.centerX - rectf.width()/2f;
+        float top = mTargetRect.centerY - rectf.height()/2f;
+        return new RectF(left - BUTTON_WIDTH, top - BUTTON_WIDTH, left + BUTTON_WIDTH, top + BUTTON_WIDTH);
+    }
+
+    RectF generateRotateRect() {
+        RectF rectf = generateHelpToolRect();
+        float right = mTargetRect.centerX + rectf.width()/2f;
+        float bottom = mTargetRect.centerY + rectf.height()/2f;
+        return new RectF(right - BUTTON_WIDTH, bottom - BUTTON_WIDTH, right + BUTTON_WIDTH, bottom + BUTTON_WIDTH);
+    }
+
+
 
     /**
      * 目标绘制矩形
@@ -71,18 +230,12 @@ public class TextItem {
         final int originalHeight; // 原始高
         final float originalCenterX;  // 原始宽
         final float originalCenterY; // 原始高
-        /*
-         * 平移
-         */
+        // 平移
         float centerX;  // 中心点坐标X
         float centerY;  // 中心点坐标Y
-        /*
-         * 旋转
-         */
+        // 旋转
         int rotate = 0; // 旋转角度
-        /*
-         * 缩放
-         */
+        // 缩放
         float scale = 1; // 缩放比例
         boolean reversal = false; // 反转
 
@@ -110,12 +263,7 @@ public class TextItem {
             return new TargetRect(this);
         }
 
-        /**
-         * 整体移动到指定位置
-         *
-         * @param x
-         * @param y
-         */
+        // 整体移动到指定位置
         public void moveTo(float x, float y) {
             this.centerX = x;
             this.centerY = y;
@@ -166,13 +314,7 @@ public class TextItem {
             return centerY + height() / 2;
         }
 
-        /**
-         * 判断点是否在区域范围内
-         *
-         * @param x
-         * @param y
-         * @return
-         */
+        // 判断点是否在区域范围内
         public boolean contains(float x, float y) {
             return x >= left() && x < right() && y >= top() && y < bottom();
         }
@@ -183,235 +325,4 @@ public class TextItem {
                     ", rotate=" + rotate + ", scale=" + scale + '}';
         }
     }
-
-
-    private static final float MIN_SCALE = 0.2f;
-
-    private final int BUTTON_WIDTH;
-    private final int DEFAULT_TEXT_SIZE;
-
-
-    /*
-     * 源数据
-     */
-    private String text;  // 绘制文本
-    public Paint textPaint;  // 画笔
-    public TargetRect targetRect;  // 目标位置
-
-    private Size iconSize;
-
-    boolean isDrawHelpTool = false;
-    private Paint helpBoxPaint = new Paint();
-
-    private static Bitmap deleteBit;
-    private static Bitmap rotateBit;
-
-    public TextItem(Context context) {
-        BUTTON_WIDTH = (int) DisplayInfoUtils.getInstance().dp2px(12);
-        DEFAULT_TEXT_SIZE = (int) DisplayInfoUtils.getInstance().dp2px(32);
-
-        helpBoxPaint.setColor(Color.BLACK);
-        helpBoxPaint.setStyle(Style.STROKE);
-        helpBoxPaint.setAntiAlias(true);
-        helpBoxPaint.setStrokeWidth(4);
-
-        textPaint = new Paint();
-        textPaint.setTextSize(DEFAULT_TEXT_SIZE);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setColor(Color.BLACK);
-        textPaint.setAntiAlias(true);
-        textPaint.setAlpha(120);
-
-        // 导入工具按钮位图
-        if (deleteBit == null) {
-            deleteBit = BitmapFactory.decodeResource(context.getResources(),
-                    R.drawable.ic_sticker_delete);
-        }// end if
-        if (rotateBit == null) {
-            rotateBit = BitmapFactory.decodeResource(context.getResources(),
-                    R.drawable.ic_sticker_rotate);
-        }// end if
-
-        iconSize = new Size(deleteBit.getWidth(), deleteBit.getHeight());
-    }
-
-
-    public void init(String text, Typeface typeface, View parentView) {
-        this.text = text;
-        this.textPaint.setTypeface(typeface);
-        Rect srcRect = new Rect();
-        this.textPaint.getTextBounds(text, 0, text.length(), srcRect);
-
-        int halfWidth = parentView.getWidth() >> 1;
-        int halfHeight = parentView.getHeight() >> 1;
-        int bitWidth = Math.min(srcRect.width(), halfWidth);
-        int bitHeight = bitWidth * srcRect.height() / srcRect.width();
-        this.targetRect = new TargetRect(halfWidth, halfHeight, bitWidth, bitHeight);
-
-        // TODO
-        this.isDrawHelpTool = true;
-    }
-
-    /**
-     * 位置更新
-     *
-     * @param dx
-     * @param dy
-     */
-    public void updatePos(final float dx, final float dy) {
-        this.targetRect.moveBy(dx, dy);
-    }
-
-    /**
-     * 旋转 缩放 更新
-     *
-     * @param dx
-     * @param dy
-     */
-    public void updateRotateAndScale(final float dx, final float dy) {
-        float centerX = targetRect.centerX();
-        float centerY = targetRect.centerY();
-
-        Point rbPoint = getRightBottomPoint();
-        float right = rbPoint.x;
-        float bottom = rbPoint.y;
-
-        float n_x = right + dx;
-        float n_y = bottom + dy;
-
-        float xa = right - centerX;
-        float ya = bottom - centerY;
-
-        float xb = n_x - centerX;
-        float yb = n_y - centerY;
-
-        float srcLen = (float) Math.sqrt(xa * xa + ya * ya);
-        float curLen = (float) Math.sqrt(xb * xb + yb * yb);
-
-        float scale = curLen / srcLen;// 计算缩放比
-
-        float newCcale = targetRect.scale * scale;
-        if (newCcale < MIN_SCALE) {// 最小缩放值检测
-            return;
-        }
-
-        // 缩放
-        targetRect.scale = targetRect.scale * scale;
-
-        double cos = (xa * xb + ya * yb) / (srcLen * curLen);
-        if (cos > 1 || cos < -1)
-            return;
-        float angle = (float) Math.toDegrees(Math.acos(cos));
-
-        // 拉普拉斯定理
-        float calMatrix = xa * yb - xb * ya;// 行列式计算 确定转动方向
-
-        int flag = calMatrix > 0 ? 1 : -1;
-        angle = flag * angle;
-
-        // 旋转
-        this.targetRect.rotate += angle;
-    }
-
-    public void draw(Canvas canvas) {
-        // 绘制文本
-        drawText(canvas, targetRect);
-
-        if (this.isDrawHelpTool) {// 绘制辅助工具线
-            canvas.save();
-            canvas.rotate(targetRect.rotate, targetRect.centerX(), targetRect.centerY());
-            canvas.drawRoundRect(generateTipsRect(), 10, 10, helpBoxPaint);
-            // 绘制工具按钮
-            canvas.drawBitmap(deleteBit, new Rect(0, 0, iconSize.getWidth(), iconSize.getHeight()), generateDeleteRect(), null);
-            canvas.drawBitmap(rotateBit, new Rect(0, 0, iconSize.getWidth(), iconSize.getHeight()), generateRotateRect(), null);
-            canvas.restore();
-        }
-    }
-
-    private void drawText(Canvas canvas, TargetRect targetRect) {
-        textPaint.setTextSize(DEFAULT_TEXT_SIZE * targetRect.scale);
-
-        // 获取参数
-        float rotate = targetRect.rotate;
-        float centerX = targetRect.centerX();
-        float centerY = targetRect.centerY();
-
-        // 绘制文本
-        canvas.save();
-        canvas.rotate(rotate, centerX, centerY);
-
-        canvas.drawText(text, centerX, centerY + targetRect.height() / 2, textPaint);
-
-        canvas.restore();
-    }
-
-    public void drawText(Canvas canvas, Matrix matrix) {
-        float scale = MatrixUtils.getValue(matrix, Matrix.MSCALE_X);
-        float moveX = MatrixUtils.getValue(matrix, Matrix.MTRANS_X);
-        float moveY = MatrixUtils.getValue(matrix, Matrix.MTRANS_Y);
-
-        // 获取参数
-        TargetRect targetRect = this.targetRect.clone();
-
-        targetRect.centerX = (targetRect.centerX() - moveX) / scale;
-        targetRect.centerY = (targetRect.centerY() - moveY) / scale;
-        targetRect.scale = targetRect.scale / scale;
-
-        drawText(canvas, targetRect);
-    }
-
-    public Point getRightBottomPoint() {
-        float centerX = targetRect.centerX();
-        float centerY = targetRect.centerY();
-
-        Rect rect = generateTextRect();
-        float right = centerX + rect.width()/2f;
-        float bottom = centerY + rect.height()/2f;
-
-        // 旋转坐标，得到真实坐标
-        Point point = new Point((int)right, (int)bottom);
-        point = PointUtils.rotatePoint(point, new Point((int)centerX, (int)centerY), targetRect.rotate);
-        return point;
-    }
-
-    public Rect generateTextRect() {
-        textPaint.setTextSize(DEFAULT_TEXT_SIZE * targetRect.scale);
-
-        Rect srcRect = new Rect();
-        textPaint.getTextBounds(text, 0, text.length(), srcRect);
-
-        Paint.FontMetrics fontMetrics = textPaint.getFontMetrics();
-        int offset = (int) Math.abs(fontMetrics.leading * 0.3);
-        srcRect.set(srcRect.left - offset, srcRect.top - offset, srcRect.right + offset, srcRect.bottom + offset);
-        return srcRect;
-    }
-
-    /**
-     * 辅助提示框
-     *
-     * @return
-     */
-    public RectF generateTipsRect() {
-        Rect rect = generateTextRect();
-        float left = targetRect.centerX - rect.width()/2f;
-        float top = targetRect.centerY - rect.height()/2f;
-        float right = targetRect.centerX + rect.width()/2f;
-        float bottom = targetRect.centerY + rect.height()/2f;
-        return new RectF(left, top, right, bottom);
-    }
-
-    public RectF generateDeleteRect() {
-        Rect rect = generateTextRect();
-        float left = targetRect.centerX - rect.width()/2f;
-        float top = targetRect.centerY - rect.height()/2f;
-        return new RectF(left - BUTTON_WIDTH, top - BUTTON_WIDTH, left + BUTTON_WIDTH, top + BUTTON_WIDTH);
-    }
-
-    public RectF generateRotateRect() {
-        Rect rect = generateTextRect();
-        float right = targetRect.centerX + rect.width()/2f;
-        float bottom = targetRect.centerY + rect.height()/2f;
-        return new RectF(right - BUTTON_WIDTH, bottom - BUTTON_WIDTH, right + BUTTON_WIDTH, bottom + BUTTON_WIDTH);
-    }
-
 }
