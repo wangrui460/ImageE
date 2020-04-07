@@ -42,6 +42,7 @@ import com.wangrui.imagee.tools.ToolAdapter;
 import com.wangrui.imagee.tools.ToolType;
 import com.wangrui.imagee.utils.BitmapUtils;
 import com.wangrui.imagee.utils.DelayUtils;
+import com.wangrui.imagee.utils.LogUtils;
 import com.wangrui.imagee.utils.Matrix3;
 import com.wangrui.imagee.utils.ResUtils;
 import com.wangrui.imagee.utils.ToastUtils;
@@ -210,9 +211,9 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             case TEXT:
                 showTextView(true);
                 showToolTextView(true);
+                String textEmpty = "点击输入文字";
                 DelayUtils.doSomethingInDelayOnUiThread(this, 400,
-                        () -> mLtvText.addText("点击输入文字"));
-                TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(this);
+                        () -> mLtvText.addText(textEmpty));
                 break;
             case MOSAIC:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_mosaic));
@@ -401,6 +402,24 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private void showTextView(boolean isVisiable) {
         mLtvText.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
         showMask(isVisiable);
+
+        mLtvText.setOnLabelTextViewListener(new LabelTextView.OnLabelTextViewListener() {
+            @Override
+            public void onClickItem(String text) {
+                TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(ImageEActivity.this, text);
+                dialogFragment.setOnTextEditorDialogListener(new TextEditorDialogFragment.OnTextEditorDialogListener() {
+                    @Override
+                    public void onTextChange(String inputText) {
+                        mLtvText.updateText(inputText);
+                    }
+
+                    @Override
+                    public void onTextDone(String inputText) {
+                        mLtvText.updateText(inputText);
+                    }
+                });
+            }
+        });
     }
 
     private void showToolTextView(boolean isVisiable) {

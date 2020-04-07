@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 
 import androidx.appcompat.widget.AppCompatTextView;
 
+import com.wangrui.imagee.utils.LogUtils;
 import com.wangrui.imagee.utils.PointUtils;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class LabelTextView extends AppCompatTextView {
 	private int mCurrentStatus;
 	// 当前操作的贴图数据
 	private TextItem mCurrentItem;
-	private float mOldx, mOldy;
+	private float mPrevX, mPrevY, mPrevRawX, mPrevRawY;
 
 	// 存贮每层贴图数据
 	private ArrayList<TextItem> mBanks = new ArrayList<>();
@@ -55,8 +56,19 @@ public class LabelTextView extends AppCompatTextView {
 		TextItem item = new TextItem(getContext());
 		item.init(text, this);
 		cancelCurrentItemDrawHelpState();
+		mCurrentItem = item;
 		mBanks.add(item);
 		invalidate();
+		if (mListener != null) {
+			mListener.onClickItem(mCurrentItem.getText());
+		}
+	}
+
+	public void updateText(String text) {
+		if (mCurrentItem != null) {
+			mCurrentItem.update(text, this);
+			invalidate();
+		}
 	}
 
 	@Override
@@ -77,6 +89,8 @@ public class LabelTextView extends AppCompatTextView {
 		float y = event.getY();
 		switch (action & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
+				mPrevRawX = event.getRawX();
+				mPrevRawY = event.getRawY();
 				for (TextItem item : mBanks) {
 					// 矫正触摸位置，适应旋转后的文字
 					PointF point = new PointF(x, y);
@@ -89,8 +103,8 @@ public class LabelTextView extends AppCompatTextView {
 						cancelCurrentItemDrawHelpState();
 						mCurrentItem = item;
 						mCurrentItem.mIsDrawHelpTool = true;
-						mOldx = x;
-						mOldy = y;
+						mPrevX = x;
+						mPrevY = y;
 					}
 					if (isDelete) {
 						// 删除模式
@@ -124,28 +138,39 @@ public class LabelTextView extends AppCompatTextView {
 				ret = true;
 				if (mCurrentStatus == STATUS_MOVE) {
 					// 移动贴图
-					float dx = x - mOldx;
-					float dy = y - mOldy;
+					float dx = x - mPrevX;
+					float dy = y - mPrevY;
 					if (mCurrentItem != null) {
 						mCurrentItem.updatePos(dx, dy);
 						invalidate();
 					}
-					mOldx = x;
-					mOldy = y;
+					mPrevX = x;
+					mPrevY = y;
 				} else if (mCurrentStatus == STATUS_ROTATE) {
 					// 旋转 缩放图片操作
-					float dx = x - mOldx;
-					float dy = y - mOldy;
+					float dx = x - mPrevX;
+					float dy = y - mPrevY;
 					if (mCurrentItem != null) {
 						mCurrentItem.updateRotateAndScale(dx, dy);// 旋转
 						invalidate();
 					}
-					mOldx = x;
-					mOldy = y;
+					mPrevX = x;
+					mPrevY = y;
 				}
 				break;
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP:
+				float mCurrentCancelX = event.getRawX();
+				float mCurrentCancelY = event.getRawY();
+				if (mCurrentCancelX == mPrevRawX && mCurrentCancelY == mPrevRawY) {
+					if (mCurrentItem != null) {
+						mCurrentItem.mIsDrawHelpTool = true;
+						invalidate();
+						if (mListener != null) {
+							mListener.onClickItem(mCurrentItem.getText());
+						}
+					}
+				}
 				ret = false;
 				mCurrentStatus = STATUS_IDLE;
 				break;
@@ -167,4 +192,16 @@ public class LabelTextView extends AppCompatTextView {
 		mBanks.clear();
 		this.invalidate();
 	}
+
+	//<editor-fold desc="listener">
+	private OnLabelTextViewListener mListener;
+
+	public void setOnLabelTextViewListener(OnLabelTextViewListener listener) {
+		mListener = listener;
+	}
+
+	public interface OnLabelTextViewListener {
+		void onClickItem(String text);
+	}
+	//</editor-fold>
 }

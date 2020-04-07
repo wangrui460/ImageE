@@ -15,6 +15,7 @@ import android.graphics.RectF;
 import android.view.View;
 
 import com.wangrui.imagee.R;
+import com.wangrui.imagee.utils.DisplayInfoUtils;
 import com.wangrui.imagee.utils.MatrixUtils;
 import com.wangrui.imagee.utils.PointUtils;
 
@@ -78,12 +79,34 @@ public class TextItem {
         mText = text;
         Rect srcRect = new Rect();
         mTextPaint.getTextBounds(text, 0, text.length(), srcRect);
+        if (srcRect.width() == 0) {
+            mTextPaint.getTextBounds("好", 0, 1, srcRect);
+        }
 
         int halfWidth = parentView.getWidth() >> 1;
         int halfHeight = parentView.getHeight() >> 1;
         int bitWidth = Math.min(srcRect.width(), halfWidth);
         int bitHeight = (bitWidth * srcRect.height() / srcRect.width());
         mTargetRect = new TargetRect(halfWidth, halfHeight, bitWidth, bitHeight);
+
+        mIsDrawHelpTool = true;
+    }
+
+    public void update(String text, View parentView) {
+        mText = text;
+        Rect srcRect = new Rect();
+        mTextPaint.getTextBounds(text, 0, text.length(), srcRect);
+        if (srcRect.width() == 0) {
+            mTextPaint.getTextBounds("好", 0, 1, srcRect);
+        }
+        float prevCenterX = mTargetRect.centerX;
+        float prevCenterY = mTargetRect.centerY;
+
+        int halfWidth = parentView.getWidth() >> 1;
+        int halfHeight = parentView.getHeight() >> 1;
+        int bitWidth = Math.min(srcRect.width(), halfWidth);
+        int bitHeight = (bitWidth * srcRect.height() / srcRect.width());
+        mTargetRect = new TargetRect(prevCenterX, prevCenterY, bitWidth, bitHeight);
 
         mIsDrawHelpTool = true;
     }
@@ -223,7 +246,9 @@ public class TextItem {
         return new RectF(right - BUTTON_WIDTH, bottom - BUTTON_WIDTH, right + BUTTON_WIDTH, bottom + BUTTON_WIDTH);
     }
 
-
+    public String getText() {
+        return mText;
+    }
 
     // 目标绘制矩形
     public static class TargetRect {
