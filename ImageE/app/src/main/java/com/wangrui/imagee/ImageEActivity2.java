@@ -33,10 +33,7 @@ import com.wangrui.imagee.filter.ToolFilterView;
 import com.wangrui.imagee.imagezoom.ImageViewTouch;
 import com.wangrui.imagee.imagezoom.ImageViewTouchBase;
 import com.wangrui.imagee.photoedit.BrushDrawingView;
-import com.wangrui.imagee.photoedit.OnPhotoEditorListener;
-import com.wangrui.imagee.photoedit.PhotoEditAddView;
 import com.wangrui.imagee.photoedit.PhotoEditor;
-import com.wangrui.imagee.photoedit.ViewType;
 import com.wangrui.imagee.sticker.StickerItem;
 import com.wangrui.imagee.sticker.StickerView;
 import com.wangrui.imagee.sticker.ToolStickerView;
@@ -56,7 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnToolSelectedListener {
+public class ImageEActivity2 extends AppCompatActivity implements ToolAdapter.OnToolSelectedListener {
 
     private RecyclerView mRvTools;
     private TextView mTvCancel;
@@ -97,11 +94,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     // 滤镜 Bitmap
     public Bitmap mFilterBitmap;
 
-    // PhotoEdit
-    private PhotoEditor mPhotoEditor;
-    private RelativeLayout mRlPhotoEditParent;
-    private ImageViewTouch mIvtPhotoEditChild;
-
     // 贴图（贴图显示控件）
     private StickerView mSvSticker;
     // 异步保存贴图
@@ -116,7 +108,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private String mImagePath;
 
     public static void start(Context context, String imagePath) {
-        Intent intent = new Intent(context, ImageEActivity.class);
+        Intent intent = new Intent(context, ImageEActivity2.class);
         intent.putExtra("imagePath", imagePath);
         context.startActivity(intent);
     }
@@ -125,7 +117,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         makeFullScreen();
-        setContentView(R.layout.activity_image_e);
+        setContentView(R.layout.activity_image_e2);
         initViews();
         setupEvents();
         loadImage(mImagePath);
@@ -156,15 +148,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         // 滤镜
         mIvtFilter = findViewById(R.id.ivt_filter);
         setupToolFilterView();
-
-        // PhotoEdit
-        mRlPhotoEditParent = findViewById(R.id.photo_edit_parent);
-        mIvtPhotoEditChild = findViewById(R.id.photo_edit_imageviewtouch);
-        mIvtPhotoEditChild.setScaleEnabled(false);
-        mIvtPhotoEditChild.setDoubleTapEnabled(false);
-        mIvtPhotoEditChild.setScrollEnabled(false);
-        BrushDrawingView mPhotoEditBrushDraw = findViewById(R.id.photo_edit_brush_draw);
-        setupPhotoEditor();
 
         // 贴纸
         mSvSticker = findViewById(R.id.sv_sticker);
@@ -203,19 +186,20 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             }
         });
 
-        mIvtMain.setOnBitmapRectChangeListener(new ImageViewTouchBase.OnBitmapRectChangeListener() {
-            @Override
-            public void onBitmapRectChanged(RectF rectF) {
-                mMainBitmapRectF = rectF;
-                LogUtils.e("===================onBitmapRectChanged", rectF.toString());
-                DelayUtils.doSomethingInDelayOnUiThread(ImageEActivity.this, 0, new DelayUtils.OnDelayListener() {
-                    @Override
-                    public void onDelay() {
-                        updateMaskRectF();
-                    }
-                });
-            }
-        });
+//        mIvtMain.setOnBitmapRectChangeListener(new ImageViewTouchBase.OnBitmapRectChangeListener() {
+//            @Override
+//            public void onBitmapRectChanged(RectF rectF) {
+//                mMainBitmapRectF = rectF;
+//                DelayUtils.doSomethingInDelayOnUiThread(ImageEActivity2.this, 0, new DelayUtils.OnDelayListener() {
+//                    @Override
+//                    public void onDelay() {
+//                        updateMaskRectF();
+//                    }
+//                });
+//            }
+//        });
+        mIvtMain.setOnBitmapRectChangeListener(rectF
+                -> mMainBitmapRectF = rectF);
     }
 
     @Override
@@ -240,10 +224,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
                 showTextView(true);
                 showToolTextView(true);
                 String textEmpty = "点击输入文字";
-                PhotoEditAddView addTextView = mPhotoEditor.addText(textEmpty);
-                showEditDialog(addTextView);
-//                DelayUtils.doSomethingInDelayOnUiThread(this, 400,
-//                        () -> mLtvText.addText(textEmpty));
+                DelayUtils.doSomethingInDelayOnUiThread(this, 400,
+                        () -> mLtvText.addText(textEmpty));
                 break;
             case MOSAIC:
                 ToastUtils.showSystemLongMessage("点击了"+ ResUtils.getString(R.string.tool_name_mosaic));
@@ -255,7 +237,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private void showCropImageView(boolean isVisiable) {
         mCropImageView.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
         mIvtMain.setVisibility(isVisiable ? View.INVISIBLE : View.VISIBLE);
-        mRlPhotoEditParent.setVisibility(isVisiable ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void showToolCropView(boolean isVisiable) {
@@ -323,7 +304,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private void showFilterImageView(boolean isVisiable) {
         mIvtFilter.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
         mIvtMain.setVisibility(isVisiable ? View.INVISIBLE : View.VISIBLE);
-        mIvtPhotoEditChild.setVisibility(isVisiable ? View.INVISIBLE : View.VISIBLE);
     }
 
     private void showToolFilterView(boolean isVisiable) {
@@ -365,60 +345,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
             @Override
             public void onFilterSelected(String key) {
-                Bitmap newBitmap = FilterUtils.filterPhoto(ImageEActivity.this, mMainBitmap, key);
+                Bitmap newBitmap = FilterUtils.filterPhoto(ImageEActivity2.this, mMainBitmap, key);
                 updateFilterBitmap(newBitmap);
-            }
-        });
-    }
-    //</editor-fold>
-
-
-    //<editor-fold desc="PhotoEdit">
-    private void setupPhotoEditor() {
-        mPhotoEditor = new PhotoEditor.PhotoEditBuilder(ImageEActivity.this)
-                .parentView(mRlPhotoEditParent)
-                .imageView(mIvtPhotoEditChild)
-                .isTextPinchZoomable(true)
-                .buildPhotoEdit();
-        mPhotoEditor.setOnPhotoEditorListener(new OnPhotoEditorListener() {
-            @Override
-            public void onEditTextChangeListener(PhotoEditAddView rootView, String text, int colorCode) {
-                showEditDialog(rootView);
-            }
-
-            @Override
-            public void onAddViewListener(ViewType viewType, int numberOfAddedViews) {
-
-            }
-
-            @Override
-            public void onRemoveViewListener(ViewType viewType, int numberOfAddedViews) {
-
-            }
-
-            @Override
-            public void onStartViewChangeListener(ViewType viewType) {
-
-            }
-
-            @Override
-            public void onStopViewChangeListener(ViewType viewType) {
-
-            }
-        });
-    }
-
-    private void showEditDialog(PhotoEditAddView addTextView) {
-        TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(ImageEActivity.this, addTextView.getTxtText().getText().toString());
-        dialogFragment.setOnTextEditorDialogListener(new TextEditorDialogFragment.OnTextEditorDialogListener() {
-            @Override
-            public void onTextChange(String inputText) {
-                mPhotoEditor.editText(addTextView, inputText);
-            }
-
-            @Override
-            public void onTextDone(String inputText) {
-                mPhotoEditor.editText(addTextView, inputText);
             }
         });
     }
@@ -427,8 +355,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
     //<editor-fold desc="贴纸">
     private void showStickerView(boolean isVisiable) {
-//        mSvSticker.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
-//        showMask(isVisiable);
+        mSvSticker.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+        showMask(isVisiable);
     }
 
     private void showToolStickerView(boolean isVisiable) {
@@ -457,26 +385,25 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mToolStickerView.setOnToolStickerViewListener(new ToolStickerView.OnToolStickerViewListener() {
             @Override
             public void onClickCancel() {
-//                showStickerView(false);
+                showStickerView(false);
                 showToolStickerView(false);
-//                mSvSticker.clear();
+                mSvSticker.clear();
             }
 
             @Override
             public void onClickSure() {
-//                mSaveStickersTask = new SaveStickersTask();
-//                mSaveStickersTask.execute(mMainBitmap);
-//                showStickerView(false);
+                mSaveStickersTask = new SaveStickersTask();
+                mSaveStickersTask.execute(mMainBitmap);
+                showStickerView(false);
                 showToolStickerView(false);
             }
 
             @Override
             public void onStickerSelected(String stickerPath) {
                 Bitmap sticker = BitmapUtils.getStickerFromAssetsFile(stickerPath);
-//                if (sticker != null) {
-//                    mSvSticker.addBitImage(sticker);
-//                }
-                mPhotoEditor.addImage(sticker);
+                if (sticker != null) {
+                    mSvSticker.addBitImage(sticker);
+                }
             }
         });
     }
@@ -485,26 +412,26 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
     //<editor-fold desc="文字">
     private void showTextView(boolean isVisiable) {
-//        mLtvText.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
-//        showMask(isVisiable);
-//
-//        mLtvText.setOnLabelTextViewListener(new LabelTextView.OnLabelTextViewListener() {
-//            @Override
-//            public void onClickItem(String text) {
-//                TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(ImageEActivity.this, text);
-//                dialogFragment.setOnTextEditorDialogListener(new TextEditorDialogFragment.OnTextEditorDialogListener() {
-//                    @Override
-//                    public void onTextChange(String inputText) {
-//                        mLtvText.updateText(inputText);
-//                    }
-//
-//                    @Override
-//                    public void onTextDone(String inputText) {
-//                        mLtvText.updateText(inputText);
-//                    }
-//                });
-//            }
-//        });
+        mLtvText.setVisibility(isVisiable ? View.VISIBLE : View.GONE);
+        showMask(isVisiable);
+
+        mLtvText.setOnLabelTextViewListener(new LabelTextView.OnLabelTextViewListener() {
+            @Override
+            public void onClickItem(String text) {
+                TextEditorDialogFragment dialogFragment = TextEditorDialogFragment.show(ImageEActivity2.this, text);
+                dialogFragment.setOnTextEditorDialogListener(new TextEditorDialogFragment.OnTextEditorDialogListener() {
+                    @Override
+                    public void onTextChange(String inputText) {
+                        mLtvText.updateText(inputText);
+                    }
+
+                    @Override
+                    public void onTextDone(String inputText) {
+                        mLtvText.updateText(inputText);
+                    }
+                });
+            }
+        });
     }
 
     private void showToolTextView(boolean isVisiable) {
@@ -533,16 +460,16 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mToolTextView.setOnToolTextViewListener(new ToolTextView.OnToolTextViewListener() {
             @Override
             public void onClickCancel() {
-//                showTextView(false);
+                showTextView(false);
                 showToolTextView(false);
-//                mLtvText.clear();
+                mLtvText.clear();
             }
 
             @Override
             public void onClickSure() {
-//                mSaveTextsTask = new SaveTextsTask();
-//                mSaveTextsTask.execute(mMainBitmap);
-//                showTextView(false);
+                mSaveTextsTask = new SaveTextsTask();
+                mSaveTextsTask.execute(mMainBitmap);
+                showTextView(false);
                 showToolTextView(false);
             }
         });
@@ -584,9 +511,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         mIvtFilter.setImageBitmap(mMainBitmap);
         mIvtFilter.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
 
-        mIvtPhotoEditChild.setImageBitmap(mMainBitmap);
-        mIvtPhotoEditChild.setDisplayType(ImageViewTouchBase.DisplayType.FIT_TO_SCREEN);
-
         mCropImageView.setImageBitmap(mMainBitmap);
     }
 
@@ -606,53 +530,17 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
     // 防止贴图、涂鸦、文字等拖动超过边界任然显示
     private void showMask(boolean isVisiable) {
-//        int width = (int) mMainBitmapRectF.width();
-//        int height = (int) mMainBitmapRectF.height();
-//        int left = isVisiable ? (int) mMainBitmapRectF.left : 0;
-//        int top = isVisiable ? (int) mMainBitmapRectF.top : 0;
-//        int right = isVisiable ? ((int) mMainBitmapRectF.right - width) : 0;
-//        int bottom = isVisiable ? (mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom) : 0;
-//        mLlMaskLeft.setAlpha(0);
-//        mLlMaskTop.setAlpha(0);
-//        mLlMaskRight.setAlpha(0);
-//        mLlMaskBottom.setAlpha(0);
-//        if (width > 0 && height > 0) {
-//            RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
-//            paramsLeft.width = left;
-//            mLlMaskLeft.setLayoutParams(paramsLeft);
-//
-//            RelativeLayout.LayoutParams paramsTop = (RelativeLayout.LayoutParams) mLlMaskTop.getLayoutParams();
-//            paramsTop.height = top;
-//            mLlMaskTop.setLayoutParams(paramsTop);
-//
-//            RelativeLayout.LayoutParams paramsRight = (RelativeLayout.LayoutParams) mLlMaskRight.getLayoutParams();
-//            paramsRight.width = right;
-//            mLlMaskRight.setLayoutParams(paramsRight);
-//
-//            RelativeLayout.LayoutParams paramsBottom = (RelativeLayout.LayoutParams) mLlMaskBottom.getLayoutParams();
-//            paramsBottom.height = bottom;
-//            mLlMaskBottom.setLayoutParams(paramsBottom);
-//        }
-//
-//        if (isVisiable) {
-//            DelayUtils.doSomethingInDelayOnUiThread(this, 400, () -> {
-//                mLlMaskLeft.setAlpha(1);
-//                mLlMaskTop.setAlpha(1);
-//                mLlMaskRight.setAlpha(1);
-//                mLlMaskBottom.setAlpha(1);
-//            });
-//        }
-    }
-
-    private void updateMaskRectF() {
         int width = (int) mMainBitmapRectF.width();
         int height = (int) mMainBitmapRectF.height();
-        int left = (int) mMainBitmapRectF.left;
-        int top = (int) mMainBitmapRectF.top;
-        int right = ((int) mMainBitmapRectF.right - width);
-        int bottom = mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom;
+        int left = isVisiable ? (int) mMainBitmapRectF.left : 0;
+        int top = isVisiable ? (int) mMainBitmapRectF.top : 0;
+        int right = isVisiable ? ((int) mMainBitmapRectF.right - width) : 0;
+        int bottom = isVisiable ? (mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom) : 0;
+        mLlMaskLeft.setAlpha(0);
+        mLlMaskTop.setAlpha(0);
+        mLlMaskRight.setAlpha(0);
+        mLlMaskBottom.setAlpha(0);
         if (width > 0 && height > 0) {
-            LogUtils.e("===================", "111111111");
             RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
             paramsLeft.width = left;
             mLlMaskLeft.setLayoutParams(paramsLeft);
@@ -670,7 +558,40 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             mLlMaskBottom.setLayoutParams(paramsBottom);
         }
 
+        if (isVisiable) {
+            DelayUtils.doSomethingInDelayOnUiThread(this, 400, () -> {
+                mLlMaskLeft.setAlpha(1);
+                mLlMaskTop.setAlpha(1);
+                mLlMaskRight.setAlpha(1);
+                mLlMaskBottom.setAlpha(1);
+            });
+        }
+    }
 
+    private void updateMaskRectF() {
+        int width = (int) mMainBitmapRectF.width();
+        int height = (int) mMainBitmapRectF.height();
+        int left = (int) mMainBitmapRectF.left;
+        int top = (int) mMainBitmapRectF.top;
+        int right = ((int) mMainBitmapRectF.right - width);
+        int bottom = mIvtMain.getHeight() - (int) mMainBitmapRectF.bottom;
+        if (width > 0 && height > 0) {
+            RelativeLayout.LayoutParams paramsLeft = (RelativeLayout.LayoutParams) mLlMaskLeft.getLayoutParams();
+            paramsLeft.width = left;
+            mLlMaskLeft.setLayoutParams(paramsLeft);
+
+            RelativeLayout.LayoutParams paramsTop = (RelativeLayout.LayoutParams) mLlMaskTop.getLayoutParams();
+            paramsTop.height = top;
+            mLlMaskTop.setLayoutParams(paramsTop);
+
+            RelativeLayout.LayoutParams paramsRight = (RelativeLayout.LayoutParams) mLlMaskRight.getLayoutParams();
+            paramsRight.width = right;
+            mLlMaskRight.setLayoutParams(paramsRight);
+
+            RelativeLayout.LayoutParams paramsBottom = (RelativeLayout.LayoutParams) mLlMaskBottom.getLayoutParams();
+            paramsBottom.height = bottom;
+            mLlMaskBottom.setLayoutParams(paramsBottom);
+        }
     }
 
     private void updateRootViewAnimate() {

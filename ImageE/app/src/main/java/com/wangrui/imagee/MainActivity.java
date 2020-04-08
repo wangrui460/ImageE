@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +15,6 @@ import com.luck.picture.lib.config.PictureMimeType;
 import com.luck.picture.lib.entity.LocalMedia;
 import com.luck.picture.lib.permissions.RxPermissions;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
             if (localMediaPics != null && localMediaPics.size() == 1) {
                 String picPath = localMediaPics.get(0).getPath();
                 ImageEActivity.start(this, picPath);
+//                ImageEActivity2.start(this, picPath);
             }
         }
     }

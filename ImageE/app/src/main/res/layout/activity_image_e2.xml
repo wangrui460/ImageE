@@ -45,29 +45,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- PhotoEdit -->
-        <RelativeLayout
-            android:id="@+id/photo_edit_parent"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true">
-
-            <com.wangrui.imagee.imagezoom.ImageViewTouch
-                android:id="@+id/photo_edit_imageviewtouch"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_centerInParent="true" />
-
-            <com.wangrui.imagee.photoedit.BrushDrawingView
-                android:id="@+id/photo_edit_brush_draw"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/photo_edit_imageviewtouch"
-                android:layout_alignTop="@+id/photo_edit_imageviewtouch"
-                android:layout_centerInParent="true"
-                android:visibility="gone" />
-        </RelativeLayout>
-
         <!-- 贴图 -->
         <com.wangrui.imagee.sticker.StickerView
             android:id="@+id/sv_sticker"
