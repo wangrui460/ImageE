@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bamaying.instafilter.insta.InstaFilter;
 import com.wangrui.imagee.R;
 import com.wangrui.imagee.crop.CropAdapter;
 import com.wangrui.imagee.crop.CropType;
@@ -21,7 +22,7 @@ import com.wangrui.imagee.tools.CancelSureView;
  */
 public class ToolFilterView extends ConstraintLayout implements FilterAdapter.OnFilterSelectedListener {
 
-    private FilterAdapter mFilterAdapter = new FilterAdapter(this);
+    private FilterAdapter mFilterAdapter;
     private RecyclerView mRvFilters;
     private CancelSureView mCancelSureView;
 
@@ -48,6 +49,8 @@ public class ToolFilterView extends ConstraintLayout implements FilterAdapter.On
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
         mRvFilters.setLayoutManager(layoutManager);
+
+        mFilterAdapter = new FilterAdapter(this);
         mRvFilters.setAdapter(mFilterAdapter);
     }
 

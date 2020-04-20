@@ -26,8 +26,10 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bamaying.instafilter.insta.InstaFilter;
 import com.theartofdev.edmodo.cropper.CropImageView;
 import com.wangrui.imagee.crop.ToolCropView;
+import com.wangrui.imagee.filter.FilterHelper;
 import com.wangrui.imagee.filter.FilterUtils;
 import com.wangrui.imagee.filter.ToolFilterView;
 import com.wangrui.imagee.imagezoom.ImageViewTouch;
@@ -96,6 +98,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
     private ImageViewTouch mIvtFilter;
     // 滤镜 Bitmap
     public Bitmap mFilterBitmap;
+    private FilterHelper mFilterHelper;
 
     // PhotoEdit
     private PhotoEditor mPhotoEditor;
@@ -154,6 +157,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         setupToolCropView();
 
         // 滤镜
+        mFilterHelper = new FilterHelper();
         mIvtFilter = findViewById(R.id.ivt_filter);
         setupToolFilterView();
 
@@ -217,6 +221,8 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
             }
         });
     }
+
+
 
     @Override
     public void onToolSelected(ToolType toolType) {
@@ -365,7 +371,7 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
 
             @Override
             public void onFilterSelected(String key) {
-                Bitmap newBitmap = FilterUtils.filterPhoto(ImageEActivity.this, mMainBitmap, key);
+                Bitmap newBitmap = mFilterHelper.filterPhoto(ImageEActivity.this, mMainBitmap, key);
                 updateFilterBitmap(newBitmap);
             }
         });
@@ -778,5 +784,6 @@ public class ImageEActivity extends AppCompatActivity implements ToolAdapter.OnT
         if (mSaveStickersTask != null) {
             mSaveStickersTask.cancel(true);
         }
+        mFilterHelper.destroyFilters();
     }
 }

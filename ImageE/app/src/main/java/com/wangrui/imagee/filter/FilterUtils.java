@@ -4,6 +4,25 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
 
+import com.bamaying.instafilter.insta.IF1977Filter;
+import com.bamaying.instafilter.insta.IFAmaroFilter;
+import com.bamaying.instafilter.insta.IFBrannanFilter;
+import com.bamaying.instafilter.insta.IFEarlybirdFilter;
+import com.bamaying.instafilter.insta.IFHefeFilter;
+import com.bamaying.instafilter.insta.IFHudsonFilter;
+import com.bamaying.instafilter.insta.IFInkwellFilter;
+import com.bamaying.instafilter.insta.IFLomofiFilter;
+import com.bamaying.instafilter.insta.IFLordKelvinFilter;
+import com.bamaying.instafilter.insta.IFNashvilleFilter;
+import com.bamaying.instafilter.insta.IFNormalFilter;
+import com.bamaying.instafilter.insta.IFRiseFilter;
+import com.bamaying.instafilter.insta.IFSierraFilter;
+import com.bamaying.instafilter.insta.IFSutroFilter;
+import com.bamaying.instafilter.insta.IFToasterFilter;
+import com.bamaying.instafilter.insta.IFValenciaFilter;
+import com.bamaying.instafilter.insta.IFWaldenFilter;
+import com.bamaying.instafilter.insta.IFXproIIFilter;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,6 +106,26 @@ import jp.co.cyberagent.android.gpuimage.filter.GPUImageWhiteBalanceFilter;
 public class FilterUtils {
 
     public static final Map<String, Class<? extends GPUImageFilter>> FILTERS = new HashMap<>();
+//    static {
+//        FILTERS.put(IFNormalFilter.filterName(), IFNormalFilter.class);
+//        FILTERS.put(IFAmaroFilter.filterName(), IFAmaroFilter.class);
+//        FILTERS.put(IFRiseFilter.filterName(), IFRiseFilter.class);
+//        FILTERS.put(IFHudsonFilter.filterName(), IFHudsonFilter.class);
+//        FILTERS.put(IFXproIIFilter.filterName(), IFXproIIFilter.class);
+//        FILTERS.put(IFSierraFilter.filterName(), IFSierraFilter.class);
+//        FILTERS.put(IFLomofiFilter.filterName(), IFLomofiFilter.class);
+//        FILTERS.put(IFEarlybirdFilter.filterName(), IFEarlybirdFilter.class);
+//        FILTERS.put(IFSutroFilter.filterName(), IFSutroFilter.class);
+//        FILTERS.put(IFToasterFilter.filterName(), IFToasterFilter.class);
+//        FILTERS.put(IFBrannanFilter.filterName(), IFBrannanFilter.class);
+//        FILTERS.put(IFInkwellFilter.filterName(), IFInkwellFilter.class);
+//        FILTERS.put(IFWaldenFilter.filterName(), IFWaldenFilter.class);
+//        FILTERS.put(IFHefeFilter.filterName(), IFHefeFilter.class);
+//        FILTERS.put(IFValenciaFilter.filterName(), IFValenciaFilter.class);
+//        FILTERS.put(IFNashvilleFilter.filterName(), IFNashvilleFilter.class);
+//        FILTERS.put(IF1977Filter.filterName(), IF1977Filter.class);
+//        FILTERS.put(IFLordKelvinFilter.filterName(), IFLordKelvinFilter.class);
+//    }
     static {
         FILTERS.put("原色", null);
 //        FILTERS.put("深褐色", GPUImageSepiaFilter.class);

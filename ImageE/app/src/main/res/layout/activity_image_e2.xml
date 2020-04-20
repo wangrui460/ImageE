@@ -10,7 +10,7 @@
 
     <RelativeLayout
         android:id="@+id/rl_top"
-        android:background="@color/transparent"
+        android:background="@color/picture_color_transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -66,28 +66,28 @@
         <LinearLayout
             android:id="@+id/ll_mask_left"
             android:orientation="horizontal"
-            android:background="@color/blue"
+            android:background="@color/picture_color_blue"
             android:layout_alignParentStart="true"
             android:layout_width="0dp"
             android:layout_height="match_parent" />
         <LinearLayout
             android:id="@+id/ll_mask_top"
             android:orientation="horizontal"
-            android:background="@color/blue"
+            android:background="@color/picture_color_blue"
             android:layout_alignParentTop="true"
             android:layout_width="match_parent"
             android:layout_height="0dp" />
         <LinearLayout
             android:id="@+id/ll_mask_right"
             android:orientation="horizontal"
-            android:background="@color/blue"
+            android:background="@color/picture_color_blue"
             android:layout_alignParentEnd="true"
             android:layout_width="0dp"
             android:layout_height="match_parent" />
         <LinearLayout
             android:id="@+id/ll_mask_bottom"
             android:orientation="horizontal"
-            android:background="@color/blue"
+            android:background="@color/picture_color_blue"
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
             android:layout_height="0dp" />

@@ -26,8 +26,10 @@ import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bamaying.instafilter.insta.InstaFilter;
 import com.theartofdev.edmodo.cropper.CropImageView;
 import com.wangrui.imagee.crop.ToolCropView;
+import com.wangrui.imagee.filter.FilterHelper;
 import com.wangrui.imagee.filter.FilterUtils;
 import com.wangrui.imagee.filter.ToolFilterView;
 import com.wangrui.imagee.imagezoom.ImageViewTouch;
@@ -93,6 +95,7 @@ public class ImageEActivity2 extends AppCompatActivity implements ToolAdapter.On
     private ImageViewTouch mIvtFilter;
     // 滤镜 Bitmap
     public Bitmap mFilterBitmap;
+    private FilterHelper mFilterHelper;
 
     // 贴图（贴图显示控件）
     private StickerView mSvSticker;
@@ -146,6 +149,7 @@ public class ImageEActivity2 extends AppCompatActivity implements ToolAdapter.On
         setupToolCropView();
 
         // 滤镜
+        mFilterHelper = new FilterHelper();
         mIvtFilter = findViewById(R.id.ivt_filter);
         setupToolFilterView();
 
@@ -345,7 +349,7 @@ public class ImageEActivity2 extends AppCompatActivity implements ToolAdapter.On
 
             @Override
             public void onFilterSelected(String key) {
-                Bitmap newBitmap = FilterUtils.filterPhoto(ImageEActivity2.this, mMainBitmap, key);
+                Bitmap newBitmap = mFilterHelper.filterPhoto(ImageEActivity2.this, mMainBitmap, key);
                 updateFilterBitmap(newBitmap);
             }
         });

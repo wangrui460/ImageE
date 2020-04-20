@@ -1,10 +1,8 @@
 package com.wangrui.imagee.filter;
 
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -12,15 +10,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.wangrui.imagee.R;
-import com.wangrui.imagee.tools.ToolType;
-import com.wangrui.imagee.utils.ResUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.wangrui.imagee.filter.FilterHelper.FILTERS;
+
 /**
  * 工具 adapter
- *
+ * <p>
  * created by WR
  * 时间：2020-03-26 15:20
  */
@@ -30,7 +28,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     public FilterAdapter(OnFilterSelectedListener onItemSelected) {
         mListener = onItemSelected;
-        for (String key : FilterUtils.FILTERS.keySet()) {
+        for (String key : FILTERS) {
             FilterModel model = new FilterModel(R.drawable.ic_filter_1, key);
             mFilterList.add(model);
         }
@@ -48,6 +46,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FilterModel item = mFilterList.get(position);
         holder.mIvFilter.setImageResource(item.mFilterIcon);
+        holder.mTvName.setText(item.mKey);
     }
 
     @Override
@@ -57,10 +56,12 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.ViewHolder
 
     class ViewHolder extends RecyclerView.ViewHolder {
         ImageView mIvFilter;
+        TextView mTvName;
 
         ViewHolder(View itemView) {
             super(itemView);
             mIvFilter = itemView.findViewById(R.id.iv_filter);
+            mTvName = itemView.findViewById(R.id.tv_name);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
